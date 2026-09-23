@@ -231,9 +231,14 @@
         <h4>Start offsets</h4>
 
         <div class="orow">
+          <label for="off0">Overhead</label>
+          <input type="number" id="off0" value="0" step="0.1">
+          <span class="note">shifts everything else against the overhead clock</span>
+        </div>
+        <div class="orow">
           <label for="off1">Camera 1</label>
           <input type="number" id="off1" value="0" step="0.1">
-          <span class="note">seconds relative to the overhead video</span>
+          <span class="note">seconds relative to the shared timeline</span>
         </div>
         <div class="orow">
           <label for="off2">Camera 2</label>
@@ -274,7 +279,7 @@
         'https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/traj_astar_20260806_140501.csv'
       ]
     },
-    offsets: { camera1: 0, camera2: 0, path: 0 },
+    offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
     layout:  { keepPerCamera: 0.6, trimTop: 0.05, cameraHeightPct: 50, trailSeconds: 2 },
     sync:    { toleranceSeconds: 0.12, correctEveryMs: 500 },
     plot: {
@@ -316,6 +321,7 @@
   const scrub   = document.getElementById('scrub');
   const timeOut = document.getElementById('time');
   const offPath = document.getElementById('offPath');
+  const offMain = document.getElementById('off0');
   const canvas  = document.getElementById('plot');
   const ctx     = canvas.getContext('2d');
   const cfgStat = document.getElementById('scfg');
@@ -329,7 +335,6 @@
   const followers = tracks.slice(1);
 
   let traj = null;
-  let syncTimer = null;
 
   /* ---------------- status ---------------- */
   function fmt(t) {
@@ -359,7 +364,8 @@
 
     t.el.addEventListener('loadedmetadata', () => {
       setStatus(t.status, 'ok', 'loaded · ' + fmt(t.el.duration));
-      if (t !== tracks[0] && !main.paused) startFollower(t);
+      seekAll(true);
+      if (playing && t.el.readyState >= 1) t.el.play().catch(() => {});
       layout();
     });
 
@@ -430,69 +436,114 @@
   window.addEventListener('resize', layout);
   new ResizeObserver(() => layout()).observe(stage);
 
-  /* ---------------- synchronization ---------------- */
-  const targetTime = (t) => Math.max(0, main.currentTime + (Number(t.offset.value) || 0));
+  /* ---------------- shared timeline ---------------- */
+  /* Every source, the overhead included, is positioned at
+     `master + its own offset`. The master clock runs on wall time rather
+     than on any one video, so all four offsets behave identically. */
 
-  function resync(force) {
+  let master = 0;
+  let playing = false;
+  let clockT0 = 0, clockM0 = 0;
+  let scrubbing = false;
+
+  const offsetOf = (t) => Number((t.offset || offMain).value) || 0;
+
+  function totalDuration() {
+    let d = 0;
+    tracks.forEach(t => {
+      if (isFinite(t.el.duration)) d = Math.max(d, t.el.duration - offsetOf(t));
+    });
+    if (traj) d = Math.max(d, traj.duration - (Number(offPath.value) || 0));
+    return d;
+  }
+
+  function seekAll(force) {
     const tol = CFG.sync.toleranceSeconds;
-    followers.forEach(t => {
+    tracks.forEach(t => {
       if (t.el.readyState < 1 || !isFinite(t.el.duration)) return;
-      const want = Math.min(targetTime(t), t.el.duration);
+      const want = Math.min(Math.max(0, master + offsetOf(t)), t.el.duration);
       if (force || Math.abs(t.el.currentTime - want) > tol) t.el.currentTime = want;
     });
   }
 
-  function startFollower(t) {
-    if (t.el.readyState < 1) return;
-    t.el.playbackRate = main.playbackRate;
-    const want = Math.min(targetTime(t), t.el.duration || Infinity);
-    if (Math.abs(t.el.currentTime - want) > CFG.sync.toleranceSeconds) t.el.currentTime = want;
-    t.el.play().catch(err => setStatus(t.status, 'bad', 'blocked: ' + err.name));
+  function anyLoaded() {
+    return tracks.some(t => t.el.readyState >= 1);
   }
 
-  async function playAll() {
-    if (main.readyState < 1) { setStatus(tracks[0].status, 'bad', 'load the overhead video first'); return; }
-    try { await main.play(); }
-    catch (err) { setStatus(tracks[0].status, 'bad', 'blocked: ' + err.name); return; }
-    followers.forEach(startFollower);
+  function playAll() {
+    if (!anyLoaded()) { setStatus(tracks[0].status, 'bad', 'load a video first'); return; }
+    if (master >= totalDuration()) master = 0;
+    seekAll(true);
+    playing = true;
+    clockT0 = performance.now();
+    clockM0 = master;
+    playBtn.textContent = 'Pause all';
+    tracks.forEach(t => {
+      if (t.el.readyState >= 1) {
+        t.el.play().catch(err => setStatus(t.status, 'bad', 'blocked: ' + err.name));
+      }
+    });
   }
 
   function pauseAll() {
-    main.pause();
-    followers.forEach(t => t.el.pause());
+    playing = false;
+    playBtn.textContent = 'Play all';
+    tracks.forEach(t => t.el.pause());
   }
 
-  playBtn.addEventListener('click', () => { main.paused ? playAll() : pauseAll(); });
-  main.addEventListener('play',  () => { playBtn.textContent = 'Pause all'; followers.forEach(startFollower); });
-  main.addEventListener('pause', () => { playBtn.textContent = 'Play all';  followers.forEach(t => t.el.pause()); });
-  main.addEventListener('seeked', () => { resync(true); drawPlot(); });
-  followers.forEach(t => t.offset.addEventListener('change', () => resync(true)));
+  function setMaster(v, resume) {
+    master = Math.max(0, Math.min(v, totalDuration()));
+    clockM0 = master;
+    clockT0 = performance.now();
+    seekAll(true);
+    if (resume && playing) tracks.forEach(t => { if (t.el.readyState >= 1) t.el.play().catch(() => {}); });
+    drawPlot();
+  }
+
+  playBtn.addEventListener('click', () => { playing ? pauseAll() : playAll(); });
+
+  tracks.forEach(t => {
+    if (t.offset) t.offset.addEventListener('input', () => setMaster(master, true));
+  });
+  offMain.addEventListener('input', () => setMaster(master, true));
   offPath.addEventListener('input', drawPlot);
 
-  let scrubbing = false;
   scrub.addEventListener('input', () => {
     scrubbing = true;
-    if (isFinite(main.duration)) main.currentTime = (scrub.value / 1000) * main.duration;
+    setMaster((scrub.value / 1000) * totalDuration(), false);
   });
-  scrub.addEventListener('change', () => { scrubbing = false; resync(true); });
-
-  main.addEventListener('timeupdate', () => {
-    if (!scrubbing && isFinite(main.duration)) scrub.value = (main.currentTime / main.duration) * 1000;
-    timeOut.textContent = fmt(main.currentTime) + ' / ' + fmt(main.duration);
+  scrub.addEventListener('change', () => {
+    scrubbing = false;
+    setMaster(master, true);
   });
 
-  function nudge(sec) {
-    if (!isFinite(main.duration)) return;
-    main.currentTime = Math.max(0, Math.min(main.duration, main.currentTime + sec));
-    resync(true);
-  }
+  function nudge(sec) { setMaster(master + sec, true); }
 
   document.addEventListener('keydown', e => {
     if (e.target.matches('input')) return;
-    if (e.code === 'Space')      { e.preventDefault(); main.paused ? playAll() : pauseAll(); }
+    if (e.code === 'Space')      { e.preventDefault(); playing ? pauseAll() : playAll(); }
     if (e.code === 'ArrowLeft')  { e.preventDefault(); nudge(-5); }
     if (e.code === 'ArrowRight') { e.preventDefault(); nudge(5); }
   });
+
+  /* master clock + per-frame correction */
+  (function clock() {
+    requestAnimationFrame(clock);
+
+    if (playing && !scrubbing) {
+      master = clockM0 + (performance.now() - clockT0) / 1000;
+      const D = totalDuration();
+      if (D && master >= D) { master = D; pauseAll(); }
+      seekAll(false);
+    }
+
+    const D = totalDuration();
+    if (!scrubbing && D) scrub.value = Math.max(0, Math.min(1000, (master / D) * 1000));
+    timeOut.textContent = fmt(master) + ' / ' + fmt(D);
+
+    if (traj && playing) drawPlot();
+  })();
+
 
   /* ---------------- trajectory ---------------- */
   function parseTrajectory(text) {
@@ -607,7 +658,7 @@
     ctx.moveTo(X(b.minX), Y(0)); ctx.lineTo(X(b.maxX), Y(0));
     ctx.stroke();
 
-    const i = sampleAt(main.currentTime + (Number(offPath.value) || 0));
+    const i = sampleAt(master + (Number(offPath.value) || 0));
 
     ctx.strokeStyle = P.routeColor; ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -654,17 +705,13 @@
     ctx.strokeStyle = '#cdd3ff'; ctx.lineWidth = 1; ctx.stroke();
   }
 
-  (function tick() {
-    requestAnimationFrame(tick);
-    if (traj && !main.paused) drawPlot();
-  })();
-
   /* ---------------- apply config ---------------- */
   function applyConfig() {
     document.title = CFG.title;
     document.getElementById('pageTitle').textContent = CFG.title;
     document.getElementById('pageSubtitle').textContent = CFG.subtitle;
 
+    offMain.value = CFG.offsets.overhead;
     document.getElementById('off1').value = CFG.offsets.camera1;
     document.getElementById('off2').value = CFG.offsets.camera2;
     offPath.value = CFG.offsets.path;
@@ -676,9 +723,6 @@
       if (txt == null) setStatus(trajStat, 'bad', 'not found — pick the file');
       else loadTrajectory(txt);
     });
-
-    clearInterval(syncTimer);
-    syncTimer = setInterval(() => { if (!main.paused) resync(false); }, CFG.sync.correctEveryMs);
 
     layout();
   }
