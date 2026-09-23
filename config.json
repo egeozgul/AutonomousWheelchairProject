@@ -13,9 +13,10 @@
   },
 
   "offsets": {
-    "camera1": -2,
-    "camera2": -2,
-    "path": -4
+    "overhead": 2,
+    "camera1": 0,
+    "camera2": 0,
+    "path": -2
   },
 
   "layout": {
