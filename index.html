@@ -169,7 +169,7 @@
 
   <section>
     <div class="stage" id="stage">
-      <video class="main" id="v0" playsinline preload="metadata"></video>
+      <video class="main" id="v0" playsinline preload="metadata" muted></video>
 
       <div class="sidecol" id="sidecol">
         <div class="pip" id="pip">
@@ -255,7 +255,7 @@
   </section>
 
   <footer>
-    <p>The camera panel shows the left 60% of camera 1 beside the right 60% of camera 2. Audio comes from the overhead video only, and drift is corrected twice a second. <kbd>Space</kbd> toggles play, <kbd>←</kbd> <kbd>→</kbd> step 5 seconds.</p>
+    <p>The camera panel shows the left 60% of camera 1 beside the right 60% of camera 2. All three videos play silently. <kbd>Space</kbd> toggles play, <kbd>←</kbd> <kbd>→</kbd> step 5 seconds.</p>
   </footer>
 
 </div>
@@ -326,6 +326,16 @@
   const ctx     = canvas.getContext('2d');
   const cfgStat = document.getElementById('scfg');
   const trajStat = document.getElementById('s3');
+
+  // Silent by design: nothing here should ever emit audio.
+  [main, cam1, cam2].forEach(v => {
+    v.muted = true;
+    v.defaultMuted = true;
+    v.volume = 0;
+    v.addEventListener('volumechange', () => {
+      if (!v.muted || v.volume !== 0) { v.muted = true; v.volume = 0; }
+    });
+  });
 
   const tracks = [
     { key: 'overhead', el: main, status: document.getElementById('s0'), picker: document.getElementById('f0'), offset: null },
