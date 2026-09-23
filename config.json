@@ -1,0 +1,42 @@
+{
+  "title": "Wheelchair experiment — synchronized player",
+  "subtitle": "Overhead view with the stitched forward cameras and the planned trajectory down the left, all driven from one playhead.",
+
+  "sources": {
+    "overhead": ["overhead_web.mp4"],
+    "camera1": ["cam1_detected.mp4"],
+    "camera2": ["cam2_detected.mp4"],
+    "trajectory": [
+      "traj_astar_20260806_140501.csv",
+      "https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/traj_astar_20260806_140501.csv"
+    ]
+  },
+
+  "offsets": {
+    "camera1": 0,
+    "camera2": 0,
+    "path": 0
+  },
+
+  "layout": {
+    "keepPerCamera": 0.6,
+    "trimTop": 0.05,
+    "cameraHeightPct": 50,
+    "trailSeconds": 2
+  },
+
+  "sync": {
+    "toleranceSeconds": 0.12,
+    "correctEveryMs": 500
+  },
+
+  "plot": {
+    "gridMeters": 1,
+    "padMeters": 0.5,
+    "chairColor": "#6b7cff",
+    "routeColor": "#39404d",
+    "gridColor": "#1e242c",
+    "axisColor": "#2b3440",
+    "humanColors": ["#e8a33d", "#57c7a3", "#e0738f", "#8f7ae0", "#c9d14a", "#4aa8d1"]
+  }
+}
