@@ -255,7 +255,7 @@
   </section>
 
   <footer>
-    <p>The camera panel shows the left 60% of camera 1 beside the right 60% of camera 2. All three videos play silently. <kbd>Space</kbd> toggles play, <kbd>←</kbd> <kbd>→</kbd> step 5 seconds.</p>
+    <p>The camera panel shows the two forward cameras side by side, pre-cropped to the displayed region. All three videos play silently. <kbd>Space</kbd> toggles play, <kbd>←</kbd> <kbd>→</kbd> step 5 seconds.</p>
   </footer>
 
 </div>
@@ -271,16 +271,16 @@
     title: 'Wheelchair experiment — synchronized player',
     subtitle: 'Overhead view with the stitched forward cameras and the planned trajectory down the left, all driven from one playhead.',
     sources: {
-      overhead:   ['overhead_web.mp4'],
-      camera1:    ['cam1_detected.mp4'],
-      camera2:    ['cam2_detected.mp4'],
+      overhead:   ['exp1/overhead_web.mp4'],
+      camera1:    ['exp1/cam1_detected.mp4'],
+      camera2:    ['exp1/cam2_detected.mp4'],
       trajectory: [
-        'traj_astar_20260806_140501.csv',
-        'https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/traj_astar_20260806_140501.csv'
+        'exp1/traj_astar_20260806_140501.csv',
+        'https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/exp1/traj_astar_20260806_140501.csv'
       ]
     },
     offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
-    layout:  { keepPerCamera: 0.6, trimTop: 0.05, cameraHeightPct: 50, trailSeconds: 2 },
+    layout:  { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2 },
     sync:    { toleranceSeconds: 0.12, correctEveryMs: 500 },
     plot: {
       gridMeters: 1, padMeters: 0.5,
