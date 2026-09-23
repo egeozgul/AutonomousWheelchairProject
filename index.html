@@ -14,7 +14,7 @@
     --accent: #6b7cff;
     --ok: #5fc98a;
     --bad: #e08484;
-    --pip-height: 50%;
+    --side: 0px;
   }
 
   * { box-sizing: border-box; }
@@ -36,36 +36,6 @@
 
   section { margin-bottom: 1.75rem; }
 
-  /* ---------- source panel ---------- */
-  .sources {
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: var(--panel);
-    padding: 0.9rem 1.1rem;
-  }
-  .sources > summary {
-    cursor: pointer; font-size: 0.9rem; list-style: none;
-    display: flex; align-items: center; gap: 0.6rem;
-  }
-  .sources > summary::-webkit-details-marker { display: none; }
-  .sources > summary::before { content: '▸'; color: var(--muted); }
-  .sources[open] > summary::before { content: '▾'; }
-
-  .hint { margin: 0.85rem 0 0.9rem; font-size: 0.83rem; color: var(--muted); max-width: 72ch; }
-  code { background: #262a32; padding: 0.05rem 0.3rem; border-radius: 3px; font-size: 0.9em; }
-
-  .src-row {
-    display: grid; grid-template-columns: 110px 1fr auto;
-    gap: 0.55rem 0.9rem; align-items: center;
-    font-size: 0.83rem; padding: 0.3rem 0;
-  }
-  .src-row label { color: var(--muted); }
-  input[type=file] { font: inherit; font-size: 0.78rem; color: var(--text); min-width: 0; }
-  .status { font-size: 0.78rem; white-space: nowrap; }
-  .status.ok { color: var(--ok); }
-  .status.bad { color: var(--bad); }
-  .status.wait { color: var(--muted); }
-
   /* ---------- stage ---------- */
   .stage {
     position: relative;
@@ -76,25 +46,37 @@
     border-radius: 6px;
     overflow: hidden;
   }
-  .stage > video.main { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
+  .stage > video.main {
+    width: 100%; height: 100%;
+    padding-left: var(--side);
+    object-fit: contain;
+    display: block; background: #000;
+  }
 
-  /* stitched inset: left slice of camera 1 beside the right slice of camera 2 */
+  .sidecol {
+    position: absolute; top: 0; left: 0; height: 100%;
+    display: flex; flex-direction: column;
+    pointer-events: none;
+  }
   .pip {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: var(--pip-height);
-    display: flex;
-    overflow: hidden;
-    background: #000;
+    display: flex; flex: none; overflow: hidden; background: #000;
     border-right: 1px solid rgba(255,255,255,0.35);
     border-bottom: 1px solid rgba(255,255,255,0.35);
-    box-shadow: 4px 4px 18px rgba(0,0,0,0.65);
   }
   .half { position: relative; height: 100%; overflow: hidden; flex: none; }
   .half + .half { border-left: 1px solid rgba(255,255,255,0.22); }
   .half video { position: absolute; width: auto; max-width: none; display: block; }
-  .stage.hide-pip .pip { display: none; }
+
+  .plotwrap {
+    position: relative; flex: 1 1 auto; min-height: 0;
+    background: rgba(12,14,18,0.86);
+    border-right: 1px solid rgba(255,255,255,0.35);
+  }
+  .plotwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .plotwrap .cap {
+    position: absolute; top: 4px; left: 8px;
+    font-size: 0.66rem; color: var(--muted);
+  }
 
   /* ---------- transport ---------- */
   .transport {
@@ -103,10 +85,8 @@
     border-radius: 6px;
     background: var(--panel);
     padding: 0.85rem 1rem;
+    display: flex; align-items: center; gap: 0.85rem;
   }
-  .row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-  .row + .row { margin-top: 0.75rem; }
-
   button {
     font: inherit; font-size: 0.85rem; color: var(--text);
     background: #262a32; border: 1px solid var(--line);
@@ -114,21 +94,63 @@
   }
   button:hover { border-color: #444c59; }
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #0d1020; font-weight: 600; min-width: 5.5rem; }
-
-  input[type=range] { flex: 1; min-width: 180px; accent-color: var(--accent); }
+  button.primary {
+    background: var(--accent); border-color: var(--accent);
+    color: #0d1020; font-weight: 600; min-width: 6rem;
+  }
+  input[type=range] { flex: 1; min-width: 140px; accent-color: var(--accent); }
   .time { font-variant-numeric: tabular-nums; font-size: 0.82rem; color: var(--muted); min-width: 11ch; }
 
-  .tune { font-size: 0.8rem; color: var(--muted); }
-  .tune label { display: inline-flex; align-items: center; gap: 0.35rem; }
+  /* ---------- settings ---------- */
+  .settings {
+    margin-top: 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel);
+    padding: 0.9rem 1.1rem;
+  }
+  .settings > summary {
+    cursor: pointer; font-size: 0.9rem; list-style: none;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .settings > summary::-webkit-details-marker { display: none; }
+  .settings > summary::before { content: '▸'; color: var(--muted); }
+  .settings[open] > summary::before { content: '▾'; }
+
+  .group { margin-top: 1rem; }
+  .group h4 {
+    margin: 0 0 0.55rem; font-size: 0.78rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+  }
+
+  .frow {
+    display: grid; grid-template-columns: 110px minmax(0,1fr) auto;
+    gap: 0.5rem 0.9rem; align-items: center;
+    font-size: 0.83rem; padding: 0.22rem 0;
+  }
+  .frow > label { color: var(--muted); }
+  input[type=file] { font: inherit; font-size: 0.78rem; color: var(--text); min-width: 0; }
+
+  .orow {
+    display: grid; grid-template-columns: 110px auto 1fr;
+    gap: 0.5rem 0.9rem; align-items: center;
+    font-size: 0.83rem; padding: 0.22rem 0;
+  }
+  .orow > label { color: var(--muted); }
+  .orow .note { font-size: 0.76rem; color: #6f767f; }
   input[type=number] {
-    font: inherit; font-size: 0.8rem; width: 5rem;
+    font: inherit; font-size: 0.8rem; width: 5.5rem;
     background: #262a32; color: var(--text);
     border: 1px solid var(--line); border-radius: 4px; padding: 0.25rem 0.4rem;
   }
 
+  .status { font-size: 0.78rem; white-space: nowrap; }
+  .status.ok { color: var(--ok); }
+  .status.bad { color: var(--bad); }
+  .status.wait { color: var(--muted); }
+
   footer {
-    border-top: 1px solid var(--line); padding-top: 1.25rem;
+    border-top: 1px solid var(--line); margin-top: 1.75rem; padding-top: 1.25rem;
     font-size: 0.8rem; color: var(--muted); max-width: 72ch;
   }
   kbd {
@@ -141,190 +163,282 @@
 <div class="wrap">
 
   <header>
-    <h1>Wheelchair experiment — synchronized player</h1>
-    <p>Overhead view with a stitched forward view inset in the corner: the left slice of camera 1 beside the right slice of camera 2. Everything runs off one transport.</p>
+    <h1 id="pageTitle">Wheelchair experiment — synchronized player</h1>
+    <p id="pageSubtitle">Overhead view with the stitched forward cameras and the planned trajectory down the left, all driven from one playhead.</p>
   </header>
 
   <section>
-    <details class="sources" id="sources" open>
-      <summary>Video sources <span id="srcSummary" class="status wait">checking…</span></summary>
-
-      <p class="hint">Files named <code>GX010161.MP4</code>, <code>cam1_detected.mp4</code> and <code>cam2_detected.mp4</code> load automatically if they sit beside this page. Otherwise pick each one below. This panel stays available — nothing is hidden once a file loads.</p>
-
-      <div class="src-row">
-        <label for="f0">Overhead</label>
-        <input type="file" id="f0" accept="video/*">
-        <span class="status wait" id="s0">checking…</span>
-      </div>
-      <div class="src-row">
-        <label for="f1">Camera 1</label>
-        <input type="file" id="f1" accept="video/*">
-        <span class="status wait" id="s1">checking…</span>
-      </div>
-      <div class="src-row">
-        <label for="f2">Camera 2</label>
-        <input type="file" id="f2" accept="video/*">
-        <span class="status wait" id="s2">checking…</span>
-      </div>
-    </details>
-  </section>
-
-  <section>
     <div class="stage" id="stage">
-      <video class="main" id="v0" src="overhead_web.mp4" playsinline preload="metadata"></video>
+      <video class="main" id="v0" playsinline preload="metadata"></video>
 
-      <div class="pip" id="pip">
-        <div class="half" id="half1">
-          <video id="v1" src="cam1_detected.mp4" playsinline preload="metadata" muted></video>
+      <div class="sidecol" id="sidecol">
+        <div class="pip" id="pip">
+          <div class="half" id="half1">
+            <video id="v1" playsinline preload="metadata" muted></video>
+          </div>
+          <div class="half" id="half2">
+            <video id="v2" playsinline preload="metadata" muted></video>
+          </div>
         </div>
-        <div class="half" id="half2">
-          <video id="v2" src="cam2_detected.mp4" playsinline preload="metadata" muted></video>
+        <div class="plotwrap" id="plotwrap">
+          <canvas id="plot"></canvas>
+          <span class="cap">trajectory</span>
         </div>
       </div>
     </div>
 
     <div class="transport">
-      <div class="row">
-        <button class="primary" id="playBtn" type="button">Play all</button>
-        <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Scrub all videos">
-        <span class="time" id="time">0:00 / 0:00</span>
-      </div>
-      <div class="row">
-        <button type="button" id="back5">Back 5s</button>
-        <button type="button" id="fwd5">Forward 5s</button>
-        <button type="button" id="speed">Speed: 1×</button>
-        <button type="button" id="togglePip">Hide inset</button>
-        <button type="button" id="sizePip">Inset height: 50%</button>
-        <button type="button" id="resyncBtn">Re-sync now</button>
-      </div>
-      <div class="row tune">
-        <span>Start offset (s)</span>
-        <label>Camera 1 <input type="number" id="off1" value="0" step="0.1"></label>
-        <label>Camera 2 <input type="number" id="off2" value="0" step="0.1"></label>
-        <label>Keep per camera <input type="number" id="keepPct" value="60" step="5" min="10" max="100">%</label>
-        <label>Trim top <input type="number" id="topPct" value="5" step="1" min="0" max="50">%</label>
-      </div>
+      <button class="primary" id="playBtn" type="button">Play all</button>
+      <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Playhead">
+      <span class="time" id="time">0:00 / 0:00</span>
     </div>
+
+    <details class="settings" id="settings">
+      <summary>Settings <span id="summaryStatus" class="status wait">checking…</span></summary>
+
+      <div class="group">
+        <h4>Files</h4>
+
+        <div class="frow">
+          <label for="fcfg">Config</label>
+          <input type="file" id="fcfg" accept=".json">
+          <span class="status wait" id="scfg">loading…</span>
+        </div>
+
+        <div class="frow">
+          <label for="f0">Overhead</label>
+          <input type="file" id="f0" accept="video/*">
+          <span class="status wait" id="s0">checking…</span>
+        </div>
+        <div class="frow">
+          <label for="f1">Camera 1</label>
+          <input type="file" id="f1" accept="video/*">
+          <span class="status wait" id="s1">checking…</span>
+        </div>
+        <div class="frow">
+          <label for="f2">Camera 2</label>
+          <input type="file" id="f2" accept="video/*">
+          <span class="status wait" id="s2">checking…</span>
+        </div>
+        <div class="frow">
+          <label for="f3">Trajectory</label>
+          <input type="file" id="f3" accept=".csv">
+          <span class="status wait" id="s3">checking…</span>
+        </div>
+      </div>
+
+      <div class="group">
+        <h4>Start offsets</h4>
+
+        <div class="orow">
+          <label for="off1">Camera 1</label>
+          <input type="number" id="off1" value="0" step="0.1">
+          <span class="note">seconds relative to the overhead video</span>
+        </div>
+        <div class="orow">
+          <label for="off2">Camera 2</label>
+          <input type="number" id="off2" value="0" step="0.1">
+          <span class="note">negative if it started recording earlier</span>
+        </div>
+        <div class="orow">
+          <label for="offPath">Path</label>
+          <input type="number" id="offPath" value="0" step="0.1">
+          <span class="note">shifts the trajectory against the video clock</span>
+        </div>
+      </div>
+    </details>
   </section>
 
   <footer>
-    <p>The inset keeps the left 60% of camera 1 and the right 60% of camera 2, butted together, with the top 5% trimmed off both. Audio comes from the overhead video only. Drift is corrected twice a second; if a camera started recording late, enter its offset above. <kbd>Space</kbd> toggles play, <kbd>←</kbd> <kbd>→</kbd> step 5 seconds.</p>
+    <p>The camera panel shows the left 60% of camera 1 beside the right 60% of camera 2. Audio comes from the overhead video only, and drift is corrected twice a second. <kbd>Space</kbd> toggles play, <kbd>←</kbd> <kbd>→</kbd> step 5 seconds.</p>
   </footer>
 
 </div>
 
 <script>
 (function () {
+  /* ------------------------------------------------------------------ *
+   * Everything below is driven by config.json. The DEFAULTS here are a
+   * fallback for when that file can't be read — which happens when the
+   * page is opened straight from disk, since file:// blocks fetch.
+   * ------------------------------------------------------------------ */
+  const DEFAULTS = {
+    title: 'Wheelchair experiment — synchronized player',
+    subtitle: 'Overhead view with the stitched forward cameras and the planned trajectory down the left, all driven from one playhead.',
+    sources: {
+      overhead:   ['overhead_web.mp4'],
+      camera1:    ['cam1_detected.mp4'],
+      camera2:    ['cam2_detected.mp4'],
+      trajectory: [
+        'traj_astar_20260806_140501.csv',
+        'https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/traj_astar_20260806_140501.csv'
+      ]
+    },
+    offsets: { camera1: 0, camera2: 0, path: 0 },
+    layout:  { keepPerCamera: 0.6, trimTop: 0.05, cameraHeightPct: 50, trailSeconds: 2 },
+    sync:    { toleranceSeconds: 0.12, correctEveryMs: 500 },
+    plot: {
+      gridMeters: 1, padMeters: 0.5,
+      chairColor: '#6b7cff', routeColor: '#39404d',
+      gridColor: '#1e242c', axisColor: '#2b3440',
+      humanColors: ['#e8a33d', '#57c7a3', '#e0738f', '#8f7ae0', '#c9d14a', '#4aa8d1']
+    }
+  };
+
+  const CONFIG_SOURCES = [
+    'config.json',
+    'https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/config.json'
+  ];
+
+  let CFG = structuredClone(DEFAULTS);
+
+  function merge(base, over) {
+    if (!over || typeof over !== 'object' || Array.isArray(over)) return over ?? base;
+    const out = Array.isArray(base) ? [...base] : { ...base };
+    for (const k of Object.keys(over)) {
+      out[k] = (k in base) ? merge(base[k], over[k]) : over[k];
+    }
+    return out;
+  }
+
+  const list = (v) => Array.isArray(v) ? v.slice() : (v ? [v] : []);
+
+  /* ---------------- elements ---------------- */
   const stage   = document.getElementById('stage');
+  const sidecol = document.getElementById('sidecol');
   const pip     = document.getElementById('pip');
   const half1   = document.getElementById('half1');
   const half2   = document.getElementById('half2');
   const main    = document.getElementById('v0');
   const cam1    = document.getElementById('v1');
   const cam2    = document.getElementById('v2');
-  const keepIn  = document.getElementById('keepPct');
-  const topIn   = document.getElementById('topPct');
   const playBtn = document.getElementById('playBtn');
   const scrub   = document.getElementById('scrub');
   const timeOut = document.getElementById('time');
+  const offPath = document.getElementById('offPath');
+  const canvas  = document.getElementById('plot');
+  const ctx     = canvas.getContext('2d');
+  const cfgStat = document.getElementById('scfg');
+  const trajStat = document.getElementById('s3');
 
   const tracks = [
-    { el: main, status: document.getElementById('s0'), picker: document.getElementById('f0'), offset: null },
-    { el: cam1, status: document.getElementById('s1'), picker: document.getElementById('f1'), offset: document.getElementById('off1') },
-    { el: cam2, status: document.getElementById('s2'), picker: document.getElementById('f2'), offset: document.getElementById('off2') }
+    { key: 'overhead', el: main, status: document.getElementById('s0'), picker: document.getElementById('f0'), offset: null },
+    { key: 'camera1',  el: cam1, status: document.getElementById('s1'), picker: document.getElementById('f1'), offset: document.getElementById('off1') },
+    { key: 'camera2',  el: cam2, status: document.getElementById('s2'), picker: document.getElementById('f2'), offset: document.getElementById('off2') }
   ];
   const followers = tracks.slice(1);
 
-  /* ---------- status ---------- */
+  let traj = null;
+  let syncTimer = null;
+
+  /* ---------------- status ---------------- */
   function fmt(t) {
     if (!isFinite(t)) return '0:00';
     const m = Math.floor(t / 60), s = Math.floor(t % 60);
     return m + ':' + String(s).padStart(2, '0');
   }
 
-  function setStatus(t, cls, text) {
-    t.status.className = 'status ' + cls;
-    t.status.textContent = text;
+  function setStatus(node, cls, text) {
+    node.className = 'status ' + cls;
+    node.textContent = text;
     updateSummary();
   }
 
   function updateSummary() {
-    const loaded = tracks.filter(t => t.el.readyState >= 1).length;
-    const el = document.getElementById('srcSummary');
-    el.className = loaded === tracks.length ? 'status ok' : (loaded ? 'status bad' : 'status wait');
-    el.textContent = loaded === tracks.length ? 'all 3 loaded' : loaded + ' of 3 loaded';
+    const loaded = tracks.filter(t => t.el.readyState >= 1).length + (traj ? 1 : 0);
+    const el = document.getElementById('summaryStatus');
+    el.className = loaded === 4 ? 'status ok' : (loaded ? 'status bad' : 'status wait');
+    el.textContent = loaded === 4 ? 'all 4 loaded' : loaded + ' of 4 loaded';
+    if (loaded < 4) document.getElementById('settings').open = true;
   }
 
+  /* ---------------- video sources with fallback ---------------- */
   tracks.forEach(t => {
+    t.queue = [];
+    t.qi = 0;
+
     t.el.addEventListener('loadedmetadata', () => {
-      setStatus(t, 'ok', 'loaded · ' + fmt(t.el.duration));
+      setStatus(t.status, 'ok', 'loaded · ' + fmt(t.el.duration));
       if (t !== tracks[0] && !main.paused) startFollower(t);
-      layoutInset();
+      layout();
     });
+
     t.el.addEventListener('error', () => {
+      if (t.qi < t.queue.length - 1) {     // try the next source in the list
+        t.qi++;
+        t.el.src = t.queue[t.qi];
+        t.el.load();
+        return;
+      }
       const src = t.el.getAttribute('src') || '';
-      setStatus(t, 'bad', src && !src.startsWith('blob:')
+      setStatus(t.status, 'bad', src && !src.startsWith('blob:')
         ? 'not found — pick the file' : 'could not play this file');
     });
+
     t.picker.addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
-      setStatus(t, 'wait', 'loading…');
+      setStatus(t.status, 'wait', 'loading…');
+      t.queue = [];
+      t.qi = 0;
       t.el.src = URL.createObjectURL(file);
       t.el.load();
     });
   });
 
-  /* ---------- stitched inset ---------- */
-  let pipPct = 50;   // inset height as a share of the stage
+  function startTrack(t) {
+    t.queue = list(CFG.sources[t.key]);
+    t.qi = 0;
+    if (!t.queue.length) { setStatus(t.status, 'bad', 'no source configured'); return; }
+    setStatus(t.status, 'wait', 'loading…');
+    t.el.src = t.queue[0];
+    t.el.load();
+  }
 
-  function layoutInset() {
-    const keep = Math.min(100, Math.max(10, Number(keepIn.value) || 60)) / 100;
-    const topCut = Math.min(50, Math.max(0, Number(topIn.value) || 0)) / 100;
-    const h = stage.clientHeight * (pipPct / 100);
+  /* ---------------- left column ---------------- */
+  function layout() {
+    const L = CFG.layout;
+    const H = stage.clientHeight;
+    const h = H * (L.cameraHeightPct / 100);
     if (!h) return;
 
-    // Scale each video taller than the frame so the trimmed top falls outside,
-    // leaving the kept portion filling the inset height exactly.
-    const vh = h / (1 - topCut);
+    const vh = h / (1 - L.trimTop);
     const ar = (v) => (v.videoWidth && v.videoHeight) ? v.videoWidth / v.videoHeight : 3 / 4;
     const w1 = vh * ar(cam1);
     const w2 = vh * ar(cam2);
+    const colW = (w1 + w2) * L.keepPerCamera;
+
+    sidecol.style.width = colW + 'px';
+    document.documentElement.style.setProperty('--side', colW + 'px');
 
     pip.style.height = h + 'px';
-    pip.style.width  = (w1 * keep + w2 * keep) + 'px';
+    pip.style.width  = colW + 'px';
 
     cam1.style.height = vh + 'px';
     cam2.style.height = vh + 'px';
-    cam1.style.top = (-vh * topCut) + 'px';
-    cam2.style.top = (-vh * topCut) + 'px';
+    cam1.style.top = (-vh * L.trimTop) + 'px';
+    cam2.style.top = (-vh * L.trimTop) + 'px';
 
-    // Camera 1: keep the left slice, so the video sits flush left.
-    half1.style.width = (w1 * keep) + 'px';
+    half1.style.width = (w1 * L.keepPerCamera) + 'px';
     cam1.style.left = '0px';
+    half2.style.width = (w2 * L.keepPerCamera) + 'px';
+    cam2.style.left = (-w2 * (1 - L.keepPerCamera)) + 'px';
 
-    // Camera 2: keep the right slice, so pull the trimmed left part off-frame.
-    half2.style.width = (w2 * keep) + 'px';
-    cam2.style.left = (-w2 * (1 - keep)) + 'px';
+    drawPlot();
   }
 
-  keepIn.addEventListener('input', layoutInset);
-  topIn.addEventListener('input', layoutInset);
-  window.addEventListener('resize', layoutInset);
-  new ResizeObserver(() => layoutInset()).observe(stage);
+  window.addEventListener('resize', layout);
+  new ResizeObserver(() => layout()).observe(stage);
 
-  /* ---------- synchronization ---------- */
-  const TOLERANCE = 0.12;
-
-  function targetTime(t) {
-    return Math.max(0, main.currentTime + (Number(t.offset.value) || 0));
-  }
+  /* ---------------- synchronization ---------------- */
+  const targetTime = (t) => Math.max(0, main.currentTime + (Number(t.offset.value) || 0));
 
   function resync(force) {
+    const tol = CFG.sync.toleranceSeconds;
     followers.forEach(t => {
       if (t.el.readyState < 1 || !isFinite(t.el.duration)) return;
       const want = Math.min(targetTime(t), t.el.duration);
-      if (force || Math.abs(t.el.currentTime - want) > TOLERANCE) t.el.currentTime = want;
+      if (force || Math.abs(t.el.currentTime - want) > tol) t.el.currentTime = want;
     });
   }
 
@@ -332,14 +446,14 @@
     if (t.el.readyState < 1) return;
     t.el.playbackRate = main.playbackRate;
     const want = Math.min(targetTime(t), t.el.duration || Infinity);
-    if (Math.abs(t.el.currentTime - want) > TOLERANCE) t.el.currentTime = want;
-    t.el.play().catch(err => setStatus(t, 'bad', 'blocked: ' + err.name));
+    if (Math.abs(t.el.currentTime - want) > CFG.sync.toleranceSeconds) t.el.currentTime = want;
+    t.el.play().catch(err => setStatus(t.status, 'bad', 'blocked: ' + err.name));
   }
 
   async function playAll() {
-    if (main.readyState < 1) { setStatus(tracks[0], 'bad', 'load the overhead video first'); return; }
+    if (main.readyState < 1) { setStatus(tracks[0].status, 'bad', 'load the overhead video first'); return; }
     try { await main.play(); }
-    catch (err) { setStatus(tracks[0], 'bad', 'blocked: ' + err.name); return; }
+    catch (err) { setStatus(tracks[0].status, 'bad', 'blocked: ' + err.name); return; }
     followers.forEach(startFollower);
   }
 
@@ -351,17 +465,10 @@
   playBtn.addEventListener('click', () => { main.paused ? playAll() : pauseAll(); });
   main.addEventListener('play',  () => { playBtn.textContent = 'Pause all'; followers.forEach(startFollower); });
   main.addEventListener('pause', () => { playBtn.textContent = 'Play all';  followers.forEach(t => t.el.pause()); });
-  main.addEventListener('seeked', () => resync(true));
-  main.addEventListener('ratechange', () => followers.forEach(t => { t.el.playbackRate = main.playbackRate; }));
+  main.addEventListener('seeked', () => { resync(true); drawPlot(); });
   followers.forEach(t => t.offset.addEventListener('change', () => resync(true)));
-  document.getElementById('resyncBtn').addEventListener('click', () => {
-    resync(true);
-    if (!main.paused) followers.forEach(startFollower);
-  });
+  offPath.addEventListener('input', drawPlot);
 
-  setInterval(() => { if (!main.paused) resync(false); }, 500);
-
-  /* ---------- transport ---------- */
   let scrubbing = false;
   scrub.addEventListener('input', () => {
     scrubbing = true;
@@ -379,33 +486,6 @@
     main.currentTime = Math.max(0, Math.min(main.duration, main.currentTime + sec));
     resync(true);
   }
-  document.getElementById('back5').addEventListener('click', () => nudge(-5));
-  document.getElementById('fwd5').addEventListener('click',  () => nudge(5));
-
-  const rates = [1, 0.5, 0.25, 1.5, 2];
-  let ri = 0;
-  const speedBtn = document.getElementById('speed');
-  speedBtn.addEventListener('click', () => {
-    ri = (ri + 1) % rates.length;
-    main.playbackRate = rates[ri];
-    speedBtn.textContent = 'Speed: ' + rates[ri] + '×';
-  });
-
-  const toggleBtn = document.getElementById('togglePip');
-  toggleBtn.addEventListener('click', () => {
-    const hidden = stage.classList.toggle('hide-pip');
-    toggleBtn.textContent = hidden ? 'Show inset' : 'Hide inset';
-  });
-
-  const sizes = [50, 75, 100, 35];
-  let si = 0;
-  const sizeBtn = document.getElementById('sizePip');
-  sizeBtn.addEventListener('click', () => {
-    si = (si + 1) % sizes.length;
-    pipPct = sizes[si];
-    sizeBtn.textContent = 'Inset height: ' + pipPct + '%';
-    layoutInset();
-  });
 
   document.addEventListener('keydown', e => {
     if (e.target.matches('input')) return;
@@ -414,8 +494,220 @@
     if (e.code === 'ArrowRight') { e.preventDefault(); nudge(5); }
   });
 
-  layoutInset();
-  updateSummary();
+  /* ---------------- trajectory ---------------- */
+  function parseTrajectory(text) {
+    const lines = text.trim().split(/\r?\n/);
+    const head = lines[0].split(',').map(h => h.trim());
+    const idx = Object.fromEntries(head.map((h, i) => [h, i]));
+    const names = head.filter(h => h.endsWith('_x') && !h.startsWith('chair')).map(h => h.slice(0, -2));
+
+    const t = [], chair = [];
+    const humans = names.map(n => ({ name: n, pts: [] }));
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    const see = (x, y) => {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+    };
+
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const f = lines[i].split(',');
+      t.push(parseFloat(f[idx['t']]));
+      const cx = parseFloat(f[idx['chair_x']]);
+      const cy = parseFloat(f[idx['chair_y']]);
+      chair.push({ x: cx, y: cy, yaw: parseFloat(f[idx['chair_yaw']]) });
+      see(cx, cy);
+      humans.forEach(h => {
+        const x = parseFloat(f[idx[h.name + '_x']]);
+        const y = parseFloat(f[idx[h.name + '_y']]);
+        h.pts.push({ x, y });
+        see(x, y);
+      });
+    }
+
+    const pad = CFG.plot.padMeters;
+    const dt = t.length > 1 ? (t[t.length - 1] - t[0]) / (t.length - 1) : 0.05;
+    return {
+      t, chair, humans, dt,
+      duration: t[t.length - 1] || 0,
+      bounds: { minX: minX - pad, maxX: maxX + pad, minY: minY - pad, maxY: maxY + pad }
+    };
+  }
+
+  function loadTrajectory(text) {
+    try {
+      traj = parseTrajectory(text);
+      setStatus(trajStat, 'ok', 'loaded · ' + traj.t.length + ' samples');
+      drawPlot();
+    } catch (err) {
+      traj = null;
+      setStatus(trajStat, 'bad', 'could not parse');
+    }
+  }
+
+  async function fetchFirst(urls) {
+    for (const url of urls) {
+      try {
+        const r = await fetch(url);
+        if (r.ok) return await r.text();
+      } catch (err) { /* next */ }
+    }
+    return null;
+  }
+
+  document.getElementById('f3').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    setStatus(trajStat, 'wait', 'loading…');
+    f.text().then(loadTrajectory);
+  });
+
+  function sampleAt(time) {
+    const t = traj.t;
+    let lo = 0, hi = t.length - 1;
+    if (time <= t[0]) return 0;
+    if (time >= t[hi]) return hi;
+    while (lo < hi - 1) {
+      const mid = (lo + hi) >> 1;
+      if (t[mid] <= time) lo = mid; else hi = mid;
+    }
+    return lo;
+  }
+
+  function drawPlot() {
+    if (!traj) return;
+    const P = CFG.plot;
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const b = traj.bounds;
+    const k = Math.min(w / (b.maxX - b.minX), h / (b.maxY - b.minY));
+    const ox = (w - (b.maxX - b.minX) * k) / 2;
+    const oy = (h - (b.maxY - b.minY) * k) / 2;
+    const X = (x) => ox + (x - b.minX) * k;
+    const Y = (y) => h - oy - (y - b.minY) * k;
+
+    const g = P.gridMeters;
+    ctx.strokeStyle = P.gridColor; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = Math.ceil(b.minX / g) * g; x <= b.maxX; x += g) { ctx.moveTo(X(x), Y(b.minY)); ctx.lineTo(X(x), Y(b.maxY)); }
+    for (let y = Math.ceil(b.minY / g) * g; y <= b.maxY; y += g) { ctx.moveTo(X(b.minX), Y(y)); ctx.lineTo(X(b.maxX), Y(y)); }
+    ctx.stroke();
+
+    ctx.strokeStyle = P.axisColor;
+    ctx.beginPath();
+    ctx.moveTo(X(0), Y(b.minY)); ctx.lineTo(X(0), Y(b.maxY));
+    ctx.moveTo(X(b.minX), Y(0)); ctx.lineTo(X(b.maxX), Y(0));
+    ctx.stroke();
+
+    const i = sampleAt(main.currentTime + (Number(offPath.value) || 0));
+
+    ctx.strokeStyle = P.routeColor; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    traj.chair.forEach((p, n) => n ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y)));
+    ctx.stroke();
+
+    ctx.strokeStyle = P.chairColor; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let n = 0; n <= i; n++) {
+      const p = traj.chair[n];
+      n ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y));
+    }
+    ctx.stroke();
+
+    const trailN = Math.round(CFG.layout.trailSeconds / (traj.dt || 0.05));
+    traj.humans.forEach((hm, n) => {
+      const col = P.humanColors[n % P.humanColors.length];
+      const from = Math.max(0, i - trailN);
+      if (trailN > 0) {
+        ctx.strokeStyle = col; ctx.globalAlpha = 0.45; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let m = from; m <= i; m++) {
+          const p = hm.pts[m];
+          m === from ? ctx.moveTo(X(p.x), Y(p.y)) : ctx.lineTo(X(p.x), Y(p.y));
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      const p = hm.pts[i];
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 4.5, 0, Math.PI * 2); ctx.fill();
+    });
+
+    const c = traj.chair[i];
+    const cx = X(c.x), cy = Y(c.y), r = 10;
+    ctx.fillStyle = P.chairColor;
+    ctx.beginPath();
+    for (let n = 0; n < 3; n++) {
+      const a = c.yaw + (n === 0 ? 0 : (n === 1 ? 2.5 : -2.5));
+      const rad = n === 0 ? r : r * 0.75;
+      ctx.lineTo(cx + Math.cos(a) * rad, cy - Math.sin(a) * rad);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#cdd3ff'; ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  (function tick() {
+    requestAnimationFrame(tick);
+    if (traj && !main.paused) drawPlot();
+  })();
+
+  /* ---------------- apply config ---------------- */
+  function applyConfig() {
+    document.title = CFG.title;
+    document.getElementById('pageTitle').textContent = CFG.title;
+    document.getElementById('pageSubtitle').textContent = CFG.subtitle;
+
+    document.getElementById('off1').value = CFG.offsets.camera1;
+    document.getElementById('off2').value = CFG.offsets.camera2;
+    offPath.value = CFG.offsets.path;
+
+    tracks.forEach(startTrack);
+
+    setStatus(trajStat, 'wait', 'loading…');
+    fetchFirst(list(CFG.sources.trajectory)).then(txt => {
+      if (txt == null) setStatus(trajStat, 'bad', 'not found — pick the file');
+      else loadTrajectory(txt);
+    });
+
+    clearInterval(syncTimer);
+    syncTimer = setInterval(() => { if (!main.paused) resync(false); }, CFG.sync.correctEveryMs);
+
+    layout();
+  }
+
+  function useConfig(raw, label) {
+    try {
+      CFG = merge(DEFAULTS, JSON.parse(raw));
+      setStatus(cfgStat, 'ok', label);
+    } catch (err) {
+      CFG = structuredClone(DEFAULTS);
+      setStatus(cfgStat, 'bad', 'invalid JSON — using defaults');
+    }
+    applyConfig();
+  }
+
+  document.getElementById('fcfg').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) f.text().then(txt => useConfig(txt, 'loaded · ' + f.name));
+  });
+
+  (async function boot() {
+    const raw = await fetchFirst(CONFIG_SOURCES);
+    if (raw == null) {
+      setStatus(cfgStat, 'bad', 'not found — using defaults');
+      applyConfig();
+    } else {
+      useConfig(raw, 'loaded');
+    }
+  })();
 })();
 </script>
 </body>
