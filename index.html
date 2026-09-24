@@ -46,9 +46,16 @@
     border-radius: 6px;
     overflow: hidden;
   }
-  .stage > video.main {
-    width: 100%; height: 100%;
-    padding-left: var(--side);
+  /* the overhead sits in its own box so it can be rotated independently */
+  .mainwrap {
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    left: var(--side);
+    overflow: hidden;
+  }
+  video.main {
+    position: absolute;
+    top: 50%; left: 50%;
     object-fit: contain;
     display: block; background: #000;
   }
@@ -177,7 +184,9 @@
 
   <section>
     <div class="stage" id="stage">
-      <video class="main" id="v0" playsinline preload="metadata" muted></video>
+      <div class="mainwrap" id="mainwrap">
+        <video class="main" id="v0" playsinline preload="metadata" muted></video>
+      </div>
 
       <div class="sidecol" id="sidecol">
         <div class="pip" id="pip">
@@ -210,6 +219,16 @@
           <label for="projectSel">Run</label>
           <select id="projectSel"></select>
           <span class="status wait" id="sproj"></span>
+        </div>
+        <div class="frow">
+          <label for="rotSel">Overhead rotation</label>
+          <select id="rotSel">
+            <option value="0">0° — as recorded</option>
+            <option value="90">90° clockwise</option>
+            <option value="180">180°</option>
+            <option value="270">270° clockwise</option>
+          </select>
+          <span></span>
         </div>
       </div>
 
@@ -300,7 +319,8 @@
           camera2: 'cam2_detected.mp4',
           trajectory: 'traj_astar_20260806_140501.csv'
         },
-        offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 }
+        offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
+        overheadRotation: 0
       }
     ],
     defaults: {
@@ -310,7 +330,8 @@
         camera2: 'cam2_detected.mp4',
         trajectory: 'trajectory.csv'
       },
-      offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 }
+      offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
+      overheadRotation: 0
     },
     layout: { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2 },
     sync:   { toleranceSeconds: 0.12 },
@@ -329,6 +350,7 @@
 
   let CFG = structuredClone(DEFAULTS);
   let PROJECT = null;
+  let rotation = 0;
 
   function merge(base, over) {
     if (!over || typeof over !== 'object' || Array.isArray(over)) return over ?? base;
@@ -342,7 +364,10 @@
   /* A project names a folder and the files inside it. Each file resolves to a
      relative path first, then the same path under rawBaseUrl as a fallback. */
   function sourcesFor(proj, key) {
-    const name = (proj.files && proj.files[key]) || CFG.defaults.files[key];
+    // an explicit null means "this run doesn't have one" — don't fall back
+    const name = (proj.files && key in proj.files)
+      ? proj.files[key]
+      : CFG.defaults.files[key];
     if (!name) return [];
     if (/^https?:/i.test(name)) return [name];
     const rel = (proj.folder ? trimSlash(proj.folder) + '/' : '') + name;
@@ -367,6 +392,7 @@
   const timeOut = document.getElementById('time');
   const offPath = document.getElementById('offPath');
   const offMain = document.getElementById('off0');
+  const mainwrap = document.getElementById('mainwrap');
   const canvas  = document.getElementById('plot');
   const ctx     = canvas.getContext('2d');
   const cfgStat = document.getElementById('scfg');
@@ -405,11 +431,16 @@
   }
 
   function updateSummary() {
+    const expected = PROJECT
+      ? tracks.filter(t => sourcesFor(PROJECT, t.key).length).length
+        + (sourcesFor(PROJECT, 'trajectory').length ? 1 : 0)
+      : 4;
     const loaded = tracks.filter(t => t.el.readyState >= 1).length + (traj ? 1 : 0);
     const el = document.getElementById('summaryStatus');
-    el.className = loaded === 4 ? 'status ok' : (loaded ? 'status bad' : 'status wait');
-    el.textContent = loaded === 4 ? 'all 4 loaded' : loaded + ' of 4 loaded';
-    if (loaded < 4) document.getElementById('settings').open = true;
+    const done = expected > 0 && loaded >= expected;
+    el.className = done ? 'status ok' : (loaded ? 'status bad' : 'status wait');
+    el.textContent = done ? 'all ' + expected + ' loaded' : loaded + ' of ' + expected + ' loaded';
+    if (!done) document.getElementById('settings').open = true;
   }
 
   /* ---------------- video sources with fallback ---------------- */
@@ -450,7 +481,7 @@
   function startTrack(t) {
     t.queue = sourcesFor(PROJECT, t.key);
     t.qi = 0;
-    if (!t.queue.length) { setStatus(t.status, 'bad', 'no source configured'); return; }
+    if (!t.queue.length) { setStatus(t.status, 'wait', 'not in this run'); return; }
     setStatus(t.status, 'wait', 'loading…');
     t.el.src = t.queue[0];
     t.el.load();
@@ -485,7 +516,21 @@
     half2.style.width = (w2 * L.keepPerCamera) + 'px';
     cam2.style.left = (-w2 * (1 - L.keepPerCamera)) + 'px';
 
+    layoutOverhead();
     drawPlot();
+  }
+
+  /* The overhead video fills its box, then rotates about its centre. At 90 or
+     270 the box's width and height swap so the rotated frame still fits. */
+  function layoutOverhead() {
+    const W = mainwrap.clientWidth;
+    const H = mainwrap.clientHeight;
+    if (!W || !H) return;
+    const quarter = ((rotation % 360) + 360) % 360;
+    const swap = quarter === 90 || quarter === 270;
+    main.style.width  = (swap ? H : W) + 'px';
+    main.style.height = (swap ? W : H) + 'px';
+    main.style.transform = 'translate(-50%, -50%) rotate(' + quarter + 'deg)';
   }
 
   window.addEventListener('resize', layout);
@@ -773,6 +818,13 @@
     document.getElementById('off2').value = off.camera2;
     offPath.value = off.path;
 
+    rotation = Number(
+      proj.overheadRotation !== undefined
+        ? proj.overheadRotation
+        : CFG.defaults.overheadRotation
+    ) || 0;
+    rotSel.value = String(((rotation % 360) + 360) % 360);
+
     pauseAll();
     master = 0;
     traj = null;
@@ -781,15 +833,26 @@
 
     setStatus(trajStat, 'wait', 'loading…');
     const wanted = proj;
-    fetchFirst(sourcesFor(proj, 'trajectory')).then(txt => {
-      if (PROJECT !== wanted) return;            // a different run was picked meanwhile
-      if (txt == null) setStatus(trajStat, 'bad', 'not found — pick the file');
-      else loadTrajectory(txt);
-    });
+    const trajUrls = sourcesFor(proj, 'trajectory');
+    if (!trajUrls.length) {
+      setStatus(trajStat, 'wait', 'not in this run');
+    } else {
+      fetchFirst(trajUrls).then(txt => {
+        if (PROJECT !== wanted) return;          // a different run was picked meanwhile
+        if (txt == null) setStatus(trajStat, 'bad', 'not found — pick the file');
+        else loadTrajectory(txt);
+      });
+    }
 
     setStatus(projStat, 'ok', proj.folder ? trimSlash(proj.folder) + '/' : 'root');
     layout();
   }
+
+  const rotSel = document.getElementById('rotSel');
+  rotSel.addEventListener('change', () => {
+    rotation = Number(rotSel.value) || 0;
+    layoutOverhead();
+  });
 
   projectSel.addEventListener('change', () => {
     const proj = CFG.projects.find(p => p.id === projectSel.value);
