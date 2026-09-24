@@ -85,7 +85,7 @@
         "trajectory": "traj_astar_20260807_161443.csv"
       },
       "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
-      "overheadRotation": 90
+      "overheadRotation": 270
     },
     {
       "id": "lidar-astar-exp2",
@@ -111,7 +111,7 @@
         "trajectory": "traj_rrt_20260807_160113.csv"
       },
       "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
-      "overheadRotation": 90
+      "overheadRotation": 270
     },
 
     {
