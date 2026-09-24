@@ -9,7 +9,7 @@
   "projects": [
     {
       "id": "exp1",
-      "name": "Experiment 1 — A* run, 6 Aug 2026",
+      "name": "Mocap · A* · experiment 1",
       "folder": "exp1",
       "files": {
         "overhead": "overhead_web.mp4",
