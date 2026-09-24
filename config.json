@@ -1,37 +1,57 @@
 {
-  "title": "Wheelchair experiment — synchronized player",
+  "title": "Autonomous wheelchair — experiment player",
   "subtitle": "Overhead view with the stitched forward cameras and the planned trajectory down the left, all driven from one playhead.",
-  "sources": {
-    "overhead": [
-      "exp1/overhead_web.mp4"
-    ],
-    "camera1": [
-      "exp1/cam1_detected.mp4"
-    ],
-    "camera2": [
-      "exp1/cam2_detected.mp4"
-    ],
-    "trajectory": [
-      "exp1/traj_astar_20260806_140501.csv",
-      "https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/exp1/traj_astar_20260806_140501.csv"
-    ]
+
+  "rawBaseUrl": "https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/",
+
+  "defaultProject": "exp1",
+
+  "projects": [
+    {
+      "id": "exp1",
+      "name": "Experiment 1 — A* run, 6 Aug 2026",
+      "folder": "exp1",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_astar_20260806_140501.csv"
+      },
+      "offsets": {
+        "overhead": 0,
+        "camera1": 0,
+        "camera2": 0,
+        "path": 0
+      }
+    }
+  ],
+
+  "defaults": {
+    "files": {
+      "overhead": "overhead_web.mp4",
+      "camera1": "cam1_detected.mp4",
+      "camera2": "cam2_detected.mp4",
+      "trajectory": "trajectory.csv"
+    },
+    "offsets": {
+      "overhead": 0,
+      "camera1": 0,
+      "camera2": 0,
+      "path": 0
+    }
   },
-  "offsets": {
-    "overhead": 3,
-    "camera1": 1,
-    "camera2": 1,
-    "path": -1
-  },
+
   "layout": {
     "keepPerCamera": 1.0,
     "trimTop": 0,
     "cameraHeightPct": 50,
     "trailSeconds": 2
   },
+
   "sync": {
-    "toleranceSeconds": 0.12,
-    "correctEveryMs": 500
+    "toleranceSeconds": 0.12
   },
+
   "plot": {
     "gridMeters": 1,
     "padMeters": 0.5,
@@ -39,13 +59,6 @@
     "routeColor": "#39404d",
     "gridColor": "#1e242c",
     "axisColor": "#2b3440",
-    "humanColors": [
-      "#e8a33d",
-      "#57c7a3",
-      "#e0738f",
-      "#8f7ae0",
-      "#c9d14a",
-      "#4aa8d1"
-    ]
+    "humanColors": ["#e8a33d", "#57c7a3", "#e0738f", "#8f7ae0", "#c9d14a", "#4aa8d1"]
   }
 }
