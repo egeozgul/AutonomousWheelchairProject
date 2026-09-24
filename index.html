@@ -138,6 +138,14 @@
   }
   .orow > label { color: var(--muted); }
   .orow .note { font-size: 0.76rem; color: #6f767f; }
+  select {
+    font: inherit; font-size: 0.83rem;
+    background: #262a32; color: var(--text);
+    border: 1px solid var(--line); border-radius: 4px;
+    padding: 0.3rem 0.5rem; max-width: 100%;
+  }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
   input[type=number] {
     font: inherit; font-size: 0.8rem; width: 5.5rem;
     background: #262a32; color: var(--text);
@@ -197,6 +205,15 @@
       <summary>Settings <span id="summaryStatus" class="status wait">checking…</span></summary>
 
       <div class="group">
+        <h4>Project</h4>
+        <div class="frow">
+          <label for="projectSel">Run</label>
+          <select id="projectSel"></select>
+          <span class="status wait" id="sproj"></span>
+        </div>
+      </div>
+
+      <div class="group">
         <h4>Files</h4>
 
         <div class="frow">
@@ -233,7 +250,7 @@
         <div class="orow">
           <label for="off0">Overhead</label>
           <input type="number" id="off0" value="0" step="0.1">
-          <span class="note">shifts everything else against the overhead clock</span>
+          <span class="note">seconds into its own footage at timeline zero</span>
         </div>
         <div class="orow">
           <label for="off1">Camera 1</label>
@@ -268,20 +285,35 @@
    * page is opened straight from disk, since file:// blocks fetch.
    * ------------------------------------------------------------------ */
   const DEFAULTS = {
-    title: 'Wheelchair experiment — synchronized player',
+    title: 'Autonomous wheelchair — experiment player',
     subtitle: 'Overhead view with the stitched forward cameras and the planned trajectory down the left, all driven from one playhead.',
-    sources: {
-      overhead:   ['exp1/overhead_web.mp4'],
-      camera1:    ['exp1/cam1_detected.mp4'],
-      camera2:    ['exp1/cam2_detected.mp4'],
-      trajectory: [
-        'exp1/traj_astar_20260806_140501.csv',
-        'https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/exp1/traj_astar_20260806_140501.csv'
-      ]
+    rawBaseUrl: 'https://raw.githubusercontent.com/egeozgul/AutonomousWheelchairProject/refs/heads/main/',
+    defaultProject: 'exp1',
+    projects: [
+      {
+        id: 'exp1',
+        name: 'Experiment 1 — A* run, 6 Aug 2026',
+        folder: 'exp1',
+        files: {
+          overhead: 'overhead_web.mp4',
+          camera1: 'cam1_detected.mp4',
+          camera2: 'cam2_detected.mp4',
+          trajectory: 'traj_astar_20260806_140501.csv'
+        },
+        offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 }
+      }
+    ],
+    defaults: {
+      files: {
+        overhead: 'overhead_web.mp4',
+        camera1: 'cam1_detected.mp4',
+        camera2: 'cam2_detected.mp4',
+        trajectory: 'trajectory.csv'
+      },
+      offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 }
     },
-    offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
-    layout:  { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2 },
-    sync:    { toleranceSeconds: 0.12, correctEveryMs: 500 },
+    layout: { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2 },
+    sync:   { toleranceSeconds: 0.12 },
     plot: {
       gridMeters: 1, padMeters: 0.5,
       chairColor: '#6b7cff', routeColor: '#39404d',
@@ -296,17 +328,30 @@
   ];
 
   let CFG = structuredClone(DEFAULTS);
+  let PROJECT = null;
 
   function merge(base, over) {
     if (!over || typeof over !== 'object' || Array.isArray(over)) return over ?? base;
     const out = Array.isArray(base) ? [...base] : { ...base };
-    for (const k of Object.keys(over)) {
-      out[k] = (k in base) ? merge(base[k], over[k]) : over[k];
-    }
+    for (const k of Object.keys(over)) out[k] = (k in base) ? merge(base[k], over[k]) : over[k];
     return out;
   }
 
-  const list = (v) => Array.isArray(v) ? v.slice() : (v ? [v] : []);
+  const trimSlash = (x) => String(x || '').replace(/\/+$/, '');
+
+  /* A project names a folder and the files inside it. Each file resolves to a
+     relative path first, then the same path under rawBaseUrl as a fallback. */
+  function sourcesFor(proj, key) {
+    const name = (proj.files && proj.files[key]) || CFG.defaults.files[key];
+    if (!name) return [];
+    if (/^https?:/i.test(name)) return [name];
+    const rel = (proj.folder ? trimSlash(proj.folder) + '/' : '') + name;
+    const out = [rel];
+    if (CFG.rawBaseUrl) out.push(trimSlash(CFG.rawBaseUrl) + '/' + rel);
+    return out;
+  }
+
+  const offsetsFor = (proj) => merge(CFG.defaults.offsets, proj.offsets || {});
 
   /* ---------------- elements ---------------- */
   const stage   = document.getElementById('stage');
@@ -403,7 +448,7 @@
   });
 
   function startTrack(t) {
-    t.queue = list(CFG.sources[t.key]);
+    t.queue = sourcesFor(PROJECT, t.key);
     t.qi = 0;
     if (!t.queue.length) { setStatus(t.status, 'bad', 'no source configured'); return; }
     setStatus(t.status, 'wait', 'loading…');
@@ -715,26 +760,62 @@
     ctx.strokeStyle = '#cdd3ff'; ctx.lineWidth = 1; ctx.stroke();
   }
 
-  /* ---------------- apply config ---------------- */
+  /* ---------------- projects ---------------- */
+  const projectSel = document.getElementById('projectSel');
+  const projStat   = document.getElementById('sproj');
+
+  function loadProject(proj) {
+    PROJECT = proj;
+
+    const off = offsetsFor(proj);
+    offMain.value = off.overhead;
+    document.getElementById('off1').value = off.camera1;
+    document.getElementById('off2').value = off.camera2;
+    offPath.value = off.path;
+
+    pauseAll();
+    master = 0;
+    traj = null;
+
+    tracks.forEach(startTrack);
+
+    setStatus(trajStat, 'wait', 'loading…');
+    const wanted = proj;
+    fetchFirst(sourcesFor(proj, 'trajectory')).then(txt => {
+      if (PROJECT !== wanted) return;            // a different run was picked meanwhile
+      if (txt == null) setStatus(trajStat, 'bad', 'not found — pick the file');
+      else loadTrajectory(txt);
+    });
+
+    setStatus(projStat, 'ok', proj.folder ? trimSlash(proj.folder) + '/' : 'root');
+    layout();
+  }
+
+  projectSel.addEventListener('change', () => {
+    const proj = CFG.projects.find(p => p.id === projectSel.value);
+    if (proj) loadProject(proj);
+  });
+
   function applyConfig() {
     document.title = CFG.title;
     document.getElementById('pageTitle').textContent = CFG.title;
     document.getElementById('pageSubtitle').textContent = CFG.subtitle;
 
-    offMain.value = CFG.offsets.overhead;
-    document.getElementById('off1').value = CFG.offsets.camera1;
-    document.getElementById('off2').value = CFG.offsets.camera2;
-    offPath.value = CFG.offsets.path;
+    const projects = Array.isArray(CFG.projects) ? CFG.projects.filter(Boolean) : [];
+    projectSel.innerHTML = projects
+      .map(p => '<option value="' + p.id + '">' + (p.name || p.id) + '</option>')
+      .join('');
+    projectSel.disabled = projects.length < 2;
 
-    tracks.forEach(startTrack);
+    if (!projects.length) {
+      setStatus(projStat, 'bad', 'no projects in config');
+      return;
+    }
 
-    setStatus(trajStat, 'wait', 'loading…');
-    fetchFirst(list(CFG.sources.trajectory)).then(txt => {
-      if (txt == null) setStatus(trajStat, 'bad', 'not found — pick the file');
-      else loadTrajectory(txt);
-    });
-
-    layout();
+    const wanted = new URLSearchParams(location.search).get('project') || CFG.defaultProject;
+    const proj = projects.find(p => p.id === wanted) || projects[0];
+    projectSel.value = proj.id;
+    loadProject(proj);
   }
 
   function useConfig(raw, label) {
