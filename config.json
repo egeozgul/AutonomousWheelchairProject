@@ -17,12 +17,154 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_astar_20260806_140501.csv"
       },
-      "offsets": {
-        "overhead": 3,
-        "camera1": 1,
-        "camera2": 1,
-        "path": -1
-      }
+      "offsets": { "overhead": 3, "camera1": 1, "camera2": 1, "path": -1 }
+    },
+
+    {
+      "id": "mocap-rrt-exp1",
+      "name": "Mocap · RRT · experiment 1",
+      "folder": "mocap-rrt-exp1",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_rrt_20260806_135202.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "mocap-rrt-exp2-1",
+      "name": "Mocap · RRT · experiment 2, run 1",
+      "folder": "mocap-rrt-exp2-1",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_rrt_20260806_142202.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "mocap-rrt-exp2-2",
+      "name": "Mocap · RRT · experiment 2, run 2",
+      "folder": "mocap-rrt-exp2-2",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_rrt_20260806_141544.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "mocap-astar-exp2",
+      "name": "Mocap · A* · experiment 2",
+      "folder": "mocap-astar-exp2",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_astar_20260806_141111.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+
+    {
+      "id": "lidar-astar-exp1",
+      "name": "LiDAR · A* · experiment 1",
+      "folder": "lidar-astar-exp1",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_astar_20260807_161443.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "lidar-astar-exp2",
+      "name": "LiDAR · A* · experiment 2",
+      "folder": "lidar-astar-exp2",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_astar_20260807_165840.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "lidar-rrt-exp1-1",
+      "name": "LiDAR · RRT · experiment 1, run 1",
+      "folder": "lidar-rrt-exp1-1",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_rrt_20260807_155747.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "lidar-rrt-exp1-2",
+      "name": "LiDAR · RRT · experiment 1, run 2",
+      "folder": "lidar-rrt-exp1-2",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_rrt_20260807_160113.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+
+    {
+      "id": "global-path",
+      "name": "Global path · 5 Aug 2026",
+      "folder": "global-path",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_off_20260805_145554.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "global-trial1",
+      "name": "Global · trial 1",
+      "folder": "global-trial1",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_off_20260807_152003.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "global-trial2",
+      "name": "Global · trial 2",
+      "folder": "global-trial2",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_off_20260807_153721.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    },
+    {
+      "id": "global-trial3",
+      "name": "Global · trial 3",
+      "folder": "global-trial3",
+      "files": {
+        "overhead": "overhead_web.mp4",
+        "camera1": "cam1_detected.mp4",
+        "camera2": "cam2_detected.mp4",
+        "trajectory": "traj_off_20260807_154124.csv"
+      },
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
     }
   ],
 
@@ -33,12 +175,7 @@
       "camera2": "cam2_detected.mp4",
       "trajectory": "trajectory.csv"
     },
-    "offsets": {
-      "overhead": 0,
-      "camera1": 0,
-      "camera2": 0,
-      "path": 0
-    }
+    "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
   },
 
   "layout": {
