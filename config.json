@@ -116,39 +116,13 @@
 
     {
       "id": "global-path",
-      "name": "Global path · 5 Aug 2026",
+      "name": "Mocap Global Path (pf only)",
       "folder": "global-path",
       "files": {
         "overhead": "overhead_web.mp4",
         "camera1": "cam1_detected.mp4",
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_off_20260805_145554.csv"
-      },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
-      "overheadRotation": 0
-    },
-    {
-      "id": "global-trial1",
-      "name": "Global · trial 1",
-      "folder": "global-trial1",
-      "files": {
-        "overhead": "overhead_web.mp4",
-        "camera1": "cam1_detected.mp4",
-        "camera2": "cam2_detected.mp4",
-        "trajectory": "traj_off_20260807_152003.csv"
-      },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
-      "overheadRotation": 0
-    },
-    {
-      "id": "global-trial2",
-      "name": "Global · trial 2",
-      "folder": "global-trial2",
-      "files": {
-        "overhead": "overhead_web.mp4",
-        "camera1": "cam1_detected.mp4",
-        "camera2": "cam2_detected.mp4",
-        "trajectory": "traj_off_20260807_153721.csv"
       },
       "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
       "overheadRotation": 0
