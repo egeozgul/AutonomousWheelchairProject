@@ -17,7 +17,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_astar_20260806_140501.csv"
       },
-      "offsets": { "overhead": 3, "camera1": 1, "camera2": 1, "path": -1 }
+      "offsets": { "overhead": 3, "camera1": 1, "camera2": 1, "path": -1 },
+      "overheadRotation": 0
     },
 
     {
@@ -30,7 +31,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_rrt_20260806_135202.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "mocap-rrt-exp2-1",
@@ -42,7 +44,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_rrt_20260806_142202.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "mocap-rrt-exp2-2",
@@ -54,7 +57,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_rrt_20260806_141544.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "mocap-astar-exp2",
@@ -66,7 +70,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_astar_20260806_141111.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
 
     {
@@ -79,7 +84,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_astar_20260807_161443.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "lidar-astar-exp2",
@@ -91,7 +97,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_astar_20260807_165840.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "lidar-rrt-exp1-2",
@@ -103,7 +110,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_rrt_20260807_160113.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
 
     {
@@ -116,7 +124,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_off_20260805_145554.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "global-trial1",
@@ -128,7 +137,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_off_20260807_152003.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "global-trial2",
@@ -140,7 +150,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_off_20260807_153721.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     },
     {
       "id": "global-trial3",
@@ -152,7 +163,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_off_20260807_154124.csv"
       },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+      "overheadRotation": 0
     }
   ],
 
@@ -163,7 +175,8 @@
       "camera2": "cam2_detected.mp4",
       "trajectory": "trajectory.csv"
     },
-    "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
+    "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+    "overheadRotation": 0
   },
 
   "layout": {
