@@ -208,6 +208,7 @@
       <button class="primary" id="playBtn" type="button">Play all</button>
       <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Playhead">
       <span class="time" id="time">0:00 / 0:00</span>
+      <span class="time" id="buffer" style="min-width:0;color:var(--bad)"></span>
     </div>
 
     <details class="settings" id="settings">
@@ -390,6 +391,7 @@
   const playBtn = document.getElementById('playBtn');
   const scrub   = document.getElementById('scrub');
   const timeOut = document.getElementById('time');
+  const bufOut  = document.getElementById('buffer');
   const offPath = document.getElementById('offPath');
   const offMain = document.getElementById('off0');
   const mainwrap = document.getElementById('mainwrap');
@@ -483,6 +485,7 @@
     t.qi = 0;
     if (!t.queue.length) { setStatus(t.status, 'wait', 'not in this run'); return; }
     setStatus(t.status, 'wait', 'loading…');
+    t.el.preload = 'auto';
     t.el.src = t.queue[0];
     t.el.load();
   }
@@ -545,6 +548,19 @@
   let playing = false;
   let clockT0 = 0, clockM0 = 0;
   let scrubbing = false;
+  let holding = false;          // true while waiting for a stalled source
+
+  /* HAVE_FUTURE_DATA: enough buffered to advance at least one frame. */
+  const READY_ENOUGH = 3;
+
+  function stalledTracks() {
+    return tracks.filter(t =>
+      t.queue && t.queue.length &&           // this run actually has this source
+      t.el.readyState >= 1 &&                // it loaded at some point
+      t.el.readyState < READY_ENOUGH &&      // but can't advance right now
+      !t.el.ended
+    );
+  }
 
   const offsetOf = (t) => Number((t.offset || offMain).value) || 0;
 
@@ -587,6 +603,8 @@
 
   function pauseAll() {
     playing = false;
+    holding = false;
+    bufOut.textContent = '';
     playBtn.textContent = 'Play all';
     tracks.forEach(t => t.el.pause());
   }
@@ -631,10 +649,32 @@
     requestAnimationFrame(clock);
 
     if (playing && !scrubbing) {
-      master = clockM0 + (performance.now() - clockT0) / 1000;
-      const D = totalDuration();
-      if (D && master >= D) { master = D; pauseAll(); }
-      seekAll(false);
+      const stalled = stalledTracks();
+
+      if (stalled.length) {
+        // One source ran dry: stop the clock and everything else with it, so
+        // nothing drifts ahead while it refills.
+        if (!holding) {
+          holding = true;
+          tracks.forEach(t => t.el.pause());
+        }
+        bufOut.textContent = 'buffering ' + stalled.map(t => t.key).join(', ') + '…';
+        clockM0 = master;                       // freeze the timeline here
+        clockT0 = performance.now();
+      } else if (holding) {
+        // Everyone has data again: realign and restart together.
+        holding = false;
+        bufOut.textContent = '';
+        seekAll(true);
+        clockM0 = master;
+        clockT0 = performance.now();
+        tracks.forEach(t => { if (t.el.readyState >= 1) t.el.play().catch(() => {}); });
+      } else {
+        master = clockM0 + (performance.now() - clockT0) / 1000;
+        const D = totalDuration();
+        if (D && master >= D) { master = D; pauseAll(); }
+        seekAll(false);
+      }
     }
 
     const D = totalDuration();
