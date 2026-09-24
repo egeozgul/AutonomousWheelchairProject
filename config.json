@@ -94,20 +94,8 @@
       "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
     },
     {
-      "id": "lidar-rrt-exp1-1",
-      "name": "LiDAR · RRT · experiment 1, run 1",
-      "folder": "lidar-rrt-exp1-1",
-      "files": {
-        "overhead": "overhead_web.mp4",
-        "camera1": "cam1_detected.mp4",
-        "camera2": "cam2_detected.mp4",
-        "trajectory": "traj_rrt_20260807_155747.csv"
-      },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 }
-    },
-    {
       "id": "lidar-rrt-exp1-2",
-      "name": "LiDAR · RRT · experiment 1, run 2",
+      "name": "LiDAR · RRT · experiment 1",
       "folder": "lidar-rrt-exp1-2",
       "files": {
         "overhead": "overhead_web.mp4",
