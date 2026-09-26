@@ -80,7 +80,7 @@
       "offsets": { "overhead": 1, "camera1": 3, "camera2": 3, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 90
+      "overheadRotation": 270
     },
     {
       "id": "lidar-astar-exp2",
@@ -95,7 +95,7 @@
       "offsets": { "overhead": 14, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 180
+      "overheadRotation": 0
     },
     {
       "id": "lidar-rrt-exp1-1",
@@ -110,7 +110,7 @@
       "offsets": { "overhead": 5, "camera1": 6, "camera2": 6, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 90
+      "overheadRotation": 270
     },
     {
       "id": "lidar-rrt-exp1-2",
@@ -125,7 +125,7 @@
       "offsets": { "overhead": 3, "camera1": 6, "camera2": 6, "path": 1 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 90
+      "overheadRotation": 270
     },
     {
       "id": "global-path",
@@ -155,7 +155,7 @@
       "offsets": { "overhead": 9, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 180
+      "overheadRotation": 0
     }
   ],
 
@@ -232,8 +232,10 @@
   "plot": {
     "gridMeters": 1,
     "padMeters": 0.5,
+    "chairSize": [0.605, 0.385],
+    "humanSize": [0.55, 0.35],
     "chairColor": "#6b7cff",
-    "routeColor": "#39404d",
+    "routeColor": "#9aa6bb",
     "gridColor": "#1e242c",
     "axisColor": "#2b3440",
     "obstacleColor": "#6a5540",
