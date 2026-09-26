@@ -19,6 +19,7 @@
       },
       "offsets": { "overhead": 3, "camera1": 1, "camera2": 1, "path": -1 },
       "timeScale": { "camera1": 1, "camera2": 1 },
+      "environment": "DC",
       "overheadRotation": 0
     },
     {
@@ -33,6 +34,7 @@
       },
       "offsets": { "overhead": 3.5, "camera1": 4, "camera2": 4, "path": 1 },
       "timeScale": { "camera1": 1, "camera2": 1 },
+      "environment": "DC",
       "overheadRotation": 0
     },
     {
@@ -47,6 +49,7 @@
       },
       "offsets": { "overhead": 9, "camera1": 5, "camera2": 5, "path": 1.5 },
       "timeScale": { "camera1": 1, "camera2": 1 },
+      "environment": "DC",
       "overheadRotation": 0
     },
     {
@@ -61,6 +64,7 @@
       },
       "offsets": { "overhead": 8, "camera1": 7, "camera2": 7, "path": 5 },
       "timeScale": { "camera1": 1, "camera2": 1 },
+      "environment": "DC",
       "overheadRotation": 0
     },
     {
@@ -75,6 +79,7 @@
       },
       "offsets": { "overhead": 1, "camera1": 3, "camera2": 3, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
+      "environment": "ODC",
       "overheadRotation": 270
     },
     {
@@ -89,6 +94,7 @@
       },
       "offsets": { "overhead": 14, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
+      "environment": "ODC",
       "overheadRotation": 0
     },
     {
@@ -103,6 +109,7 @@
       },
       "offsets": { "overhead": 5, "camera1": 6, "camera2": 6, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
+      "environment": "ODC",
       "overheadRotation": 270
     },
     {
@@ -117,6 +124,7 @@
       },
       "offsets": { "overhead": 3, "camera1": 6, "camera2": 6, "path": 1 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
+      "environment": "ODC",
       "overheadRotation": 270
     },
     {
@@ -131,6 +139,7 @@
       },
       "offsets": { "overhead": 16, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1, "camera2": 1 },
+      "environment": "DC",
       "overheadRotation": 0
     },
     {
@@ -145,9 +154,54 @@
       },
       "offsets": { "overhead": 9, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
+      "environment": "ODC",
       "overheadRotation": 0
     }
   ],
+
+  "environments": {
+    "DC": {
+      "name": "Drone cage (mocap)",
+      "obstacles": [
+        [0.294, 0.8, 0.3, 0.3],
+        [0.51, -1.477, 0.6, 0.3],
+        [2.714, -1.534, 0.3, 0.6],
+        [2.567, 2.116, 0.3, 0.3]
+      ],
+      "waypoints": [
+        [-0.5, 0],
+        [1.995, -1.985],
+        [3.673, -0.146],
+        [4.05, 1.65],
+        [1.5, 2.5]
+      ],
+      "start": [-0.953, 1.7],
+      "goal": [4.02, -2.058],
+      "bounds": { "xmin": -1, "xmax": 4.4, "ymin": -2.1, "ymax": 3.2 },
+      "buffer": 0.45
+    },
+    "ODC": {
+      "name": "Outside drone cage (LiDAR)",
+      "obstacles": [
+        [0.294, 0.8, 0.3, 0.3],
+        [0.51, -1.477, 0.6, 0.3],
+        [2.714, -1.534, 0.3, 0.6],
+        [2.5, 2.25, 0.3, 0.3]
+      ],
+      "waypoints": [
+        [-0.5, 0],
+        [1.995, -2.7],
+        [3.673, -0.146],
+        [4.043, 1.852],
+        [1.5, 2.5],
+        [2.0, 0.0]
+      ],
+      "start": [-2, 2],
+      "goal": [-2, -2],
+      "bounds": { "xmin": -2.7, "xmax": 5.1, "ymin": -3.35, "ymax": 3.35 },
+      "buffer": 0.45
+    }
+  },
 
   "defaults": {
     "files": {
@@ -158,6 +212,7 @@
     },
     "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
     "timeScale": { "camera1": 1, "camera2": 1 },
+    "environment": null,
     "overheadRotation": 0
   },
 
@@ -179,6 +234,12 @@
     "routeColor": "#39404d",
     "gridColor": "#1e242c",
     "axisColor": "#2b3440",
+    "obstacleColor": "#6a5540",
+    "obstacleEdge": "#b08a5e",
+    "bufferColor": "#4a4032",
+    "waypointColor": "#b9a4d8",
+    "startColor": "#5fc98a",
+    "goalColor": "#e08484",
     "humanColors": ["#e8a33d", "#57c7a3", "#e0738f", "#8f7ae0", "#c9d14a", "#4aa8d1"]
   }
 }
