@@ -427,9 +427,11 @@
     goal:         '#1a9e4b',   // green
     route:        '#ffb3c6',   // light pink connecting lines
     label:        '#555555',
-    markerEdge:   'rgba(0,0,0,0.55)'
+    markerEdge:   'rgba(0,0,0,0.55)',
+    chair:        '#1b3a8f'    // path and robot share one dark blue
   };
   const GRID_M = 1;
+  const ZOOM = 1.1;            // fills the panel, trimming the side margins
 
   /* ---------------- elements ---------------- */
   const stage   = document.getElementById('stage');
@@ -1058,14 +1060,16 @@
   /* Markers are ellipses whose long axis lies along the direction of travel.
      Sizes are in metres, so they scale with the plot. World angles run
      counter-clockwise with y up; canvas rotation is the other way round. */
-  function drawMarker(ctx, px, py, k, lenM, widM, angle, fill, stroke) {
+  function drawMarker(ctx, px, py, k, lenM, widM, angle, fill, stroke, alpha) {
     ctx.save();
     ctx.translate(px, py);
     ctx.rotate(-angle);
     ctx.beginPath();
     ctx.ellipse(0, 0, (lenM / 2) * k, (widM / 2) * k, 0, 0, Math.PI * 2);
+    ctx.globalAlpha = (alpha === undefined) ? 1 : alpha;   // fill only
     ctx.fillStyle = fill;
     ctx.fill();
+    ctx.globalAlpha = 1;
     if (stroke) {
       ctx.strokeStyle = stroke;
       ctx.lineWidth = 1;
@@ -1104,7 +1108,7 @@
     ctx.clearRect(0, 0, w, h);
 
     const b = viewBounds();
-    const k = Math.min(w / (b.maxX - b.minX), h / (b.maxY - b.minY));
+    const k = Math.min(w / (b.maxX - b.minX), h / (b.maxY - b.minY)) * ZOOM;
     const ox = (w - (b.maxX - b.minX) * k) / 2;
     const oy = (h - (b.maxY - b.minY) * k) / 2;
     const X = (x) => ox + (x - b.minX) * k;
@@ -1128,7 +1132,7 @@
     if (!traj) return;
     const i = sampleAt(master + (Number(offPath.value) || 0));
 
-    ctx.strokeStyle = P.chairColor; ctx.lineWidth = 2.5;
+    ctx.strokeStyle = MAP.chair; ctx.lineWidth = 2.5;
     ctx.beginPath();
     for (let n = 0; n <= i; n++) {
       const p = traj.chair[n];
@@ -1141,13 +1145,14 @@
       const p = hm.pts[i];
       const a = headingAt(hm.pts, i, headingMemo, hm.name);
       drawMarker(ctx, X(p.x), Y(p.y), k, hs[0], hs[1], a,
-                 P.humanColors[n % P.humanColors.length], MAP.markerEdge);
+                 P.humanColors[n % P.humanColors.length], MAP.markerEdge, 0.5);
     });
 
     const c = traj.chair[i];
-    const cs = P.chairSize || [0.95, 0.65];
-    drawMarker(ctx, X(c.x), Y(c.y), k, cs[0], cs[1], c.yaw,
-               P.chairColor, MAP.markerEdge);
+    ctx.fillStyle = MAP.chair;
+    ctx.beginPath();
+    ctx.arc(X(c.x), Y(c.y), 4, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   /* ---------------- projects ---------------- */
