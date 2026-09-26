@@ -834,6 +834,116 @@
     return b;
   }
 
+  /* ---- routing the dashed line around the obstacles ----------------------
+     Legs that would cut through a buffered rectangle are replaced by the
+     shortest corner-to-corner detour. Nodes are the rectangle corners plus the
+     two endpoints; an edge exists where the straight segment clears every
+     rectangle, and Dijkstra picks the cheapest chain. Touching a corner or
+     sliding along an edge is allowed, so the line hugs the outlines. ---- */
+
+  const EPS = 1e-6;
+
+  function bufferedRects(env) {
+    const b = Number(env.buffer) || 0;
+    return (env.obstacles || []).map(([x, y, w, h]) =>
+      [x - b, y - b, w + 2 * b, h + 2 * b]);
+  }
+
+  function insideRect(p, r) {
+    return p[0] > r[0] + EPS && p[0] < r[0] + r[2] - EPS &&
+           p[1] > r[1] + EPS && p[1] < r[1] + r[3] - EPS;
+  }
+
+  function properCross(a, b, c, d) {
+    const side = (o, p, q) =>
+      (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0]);
+    const d1 = side(c, d, a), d2 = side(c, d, b);
+    const d3 = side(a, b, c), d4 = side(a, b, d);
+    return ((d1 > EPS && d2 < -EPS) || (d1 < -EPS && d2 > EPS)) &&
+           ((d3 > EPS && d4 < -EPS) || (d3 < -EPS && d4 > EPS));
+  }
+
+  function cornersOf(r) {
+    return [[r[0], r[1]], [r[0] + r[2], r[1]],
+            [r[0] + r[2], r[1] + r[3]], [r[0], r[1] + r[3]]];
+  }
+
+  function segmentBlocked(p, q, rects) {
+    const mid = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    for (const r of rects) {
+      // a point already inside this rectangle can't be helped by avoiding it
+      if (insideRect(p, r) || insideRect(q, r)) continue;
+
+      // Corner-to-corner diagonals cross the interior without ever properly
+      // crossing an edge. Rectangles are convex, so if both ends sit on the
+      // boundary and the segment passes through, the midpoint is inside.
+      if (insideRect(mid, r)) return true;
+
+      const c = cornersOf(r);
+      for (let i = 0; i < 4; i++) {
+        if (properCross(p, q, c[i], c[(i + 1) % 4])) return true;
+      }
+    }
+    return false;
+  }
+
+  function detour(from, to, rects) {
+    if (!segmentBlocked(from, to, rects)) return [from, to];
+
+    const nodes = [from, to];
+    rects.forEach(r => cornersOf(r).forEach(c => {
+      if (!rects.some(other => insideRect(c, other))) nodes.push(c);
+    }));
+
+    const n = nodes.length;
+    const adj = Array.from({ length: n }, () => []);
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        if (segmentBlocked(nodes[i], nodes[j], rects)) continue;
+        const w = Math.hypot(nodes[i][0] - nodes[j][0], nodes[i][1] - nodes[j][1]);
+        adj[i].push([j, w]);
+        adj[j].push([i, w]);
+      }
+    }
+
+    const dist = Array(n).fill(Infinity);
+    const prev = Array(n).fill(-1);
+    const done = Array(n).fill(false);
+    dist[0] = 0;
+
+    for (;;) {
+      let u = -1, best = Infinity;
+      for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }
+      if (u < 0 || u === 1) break;
+      done[u] = true;
+      for (const [v, w] of adj[u]) {
+        if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; }
+      }
+    }
+
+    if (!isFinite(dist[1])) return [from, to];   // no way round; draw it straight
+
+    const out = [];
+    for (let v = 1; v !== -1; v = prev[v]) out.push(nodes[v]);
+    return out.reverse();
+  }
+
+  let routeCache = { key: null, pts: [] };
+
+  function routedPath(env, stops) {
+    const key = JSON.stringify([env.name, stops, env.buffer, env.obstacles]);
+    if (routeCache.key === key) return routeCache.pts;
+
+    const rects = bufferedRects(env);
+    const pts = [];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const leg = detour(stops[i], stops[i + 1], rects);
+      leg.forEach((pt, n) => { if (i === 0 || n > 0) pts.push(pt); });
+    }
+    routeCache = { key, pts };
+    return pts;
+  }
+
   function drawEnvironment(ctx, X, Y, k) {
     if (!ENV) return;
     const P = CFG.plot;
@@ -861,9 +971,33 @@
       ctx.strokeRect(X(x), Y(y + rh), rw * k, rh * k);
     });
 
+    /* Visiting order. `waypointOrder` lists waypoints by their 1-based number
+       (w1 = 1); without it they're visited in the order they're listed. */
+    const wps = ENV.waypoints || [];
+    const order = Array.isArray(ENV.waypointOrder) && ENV.waypointOrder.length
+      ? ENV.waypointOrder
+      : wps.map((_, n) => n + 1);
+
+    const route = [];
+    if (ENV.start) route.push(ENV.start);
+    order.forEach(n => { const pt = wps[n - 1]; if (pt) route.push(pt); });
+    if (ENV.goal) route.push(ENV.goal);
+
+    if (route.length > 1) {
+      const path = routedPath(ENV, route);
+      ctx.strokeStyle = P.routeColor;
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      path.forEach(([x, y], n) => n ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y)));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
     // waypoints
     ctx.fillStyle = P.waypointColor;
-    (ENV.waypoints || []).forEach(([x, y], i) => {
+    wps.forEach(([x, y]) => {
       const px = X(x), py = Y(y);
       ctx.beginPath();
       for (let n = 0; n < 10; n++) {                 // five-pointed star
@@ -874,11 +1008,6 @@
       }
       ctx.closePath();
       ctx.fill();
-
-      ctx.fillStyle = 'rgba(255,255,255,0.55)';
-      ctx.font = '9px system-ui, sans-serif';
-      ctx.fillText('w' + (i + 1), px + 7, py - 5);
-      ctx.fillStyle = P.waypointColor;
     });
 
     const marker = (pt, col, label) => {
@@ -933,11 +1062,6 @@
     if (!traj) return;
     const i = sampleAt(master + (Number(offPath.value) || 0));
 
-    ctx.strokeStyle = P.routeColor; ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    traj.chair.forEach((p, n) => n ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y)));
-    ctx.stroke();
-
     ctx.strokeStyle = P.chairColor; ctx.lineWidth = 2.5;
     ctx.beginPath();
     for (let n = 0; n <= i; n++) {
@@ -946,22 +1070,9 @@
     }
     ctx.stroke();
 
-    const trailN = Math.round(CFG.layout.trailSeconds / (traj.dt || 0.05));
     traj.humans.forEach((hm, n) => {
-      const col = P.humanColors[n % P.humanColors.length];
-      const from = Math.max(0, i - trailN);
-      if (trailN > 0) {
-        ctx.strokeStyle = col; ctx.globalAlpha = 0.45; ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        for (let m = from; m <= i; m++) {
-          const p = hm.pts[m];
-          m === from ? ctx.moveTo(X(p.x), Y(p.y)) : ctx.lineTo(X(p.x), Y(p.y));
-        }
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-      }
       const p = hm.pts[i];
-      ctx.fillStyle = col;
+      ctx.fillStyle = P.humanColors[n % P.humanColors.length];
       ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 4.5, 0, Math.PI * 2); ctx.fill();
     });
 
