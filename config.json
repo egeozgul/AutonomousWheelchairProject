@@ -18,6 +18,7 @@
         "trajectory": "traj_astar_20260806_140501.csv"
       },
       "offsets": { "overhead": 3, "camera1": 1, "camera2": 1, "path": -1 },
+      "timeScale": { "camera1": 1, "camera2": 1 },
       "overheadRotation": 0
     },
     {
@@ -31,6 +32,7 @@
         "trajectory": "traj_astar_20260806_141111.csv"
       },
       "offsets": { "overhead": 3.5, "camera1": 4, "camera2": 4, "path": 1 },
+      "timeScale": { "camera1": 1, "camera2": 1 },
       "overheadRotation": 0
     },
     {
@@ -44,6 +46,7 @@
         "trajectory": "traj_rrt_20260806_135202.csv"
       },
       "offsets": { "overhead": 9, "camera1": 5, "camera2": 5, "path": 1.5 },
+      "timeScale": { "camera1": 1, "camera2": 1 },
       "overheadRotation": 0
     },
     {
@@ -57,6 +60,7 @@
         "trajectory": "traj_rrt_20260806_141544.csv"
       },
       "offsets": { "overhead": 8, "camera1": 7, "camera2": 7, "path": 5 },
+      "timeScale": { "camera1": 1, "camera2": 1 },
       "overheadRotation": 0
     },
     {
@@ -70,6 +74,7 @@
         "trajectory": "traj_astar_20260807_161443.csv"
       },
       "offsets": { "overhead": 1, "camera1": 6, "camera2": 6, "path": 0 },
+      "timeScale": { "camera1": 3, "camera2": 3 },
       "overheadRotation": 270
     },
     {
@@ -83,6 +88,7 @@
         "trajectory": "traj_astar_20260807_165840.csv"
       },
       "offsets": { "overhead": 14, "camera1": 5, "camera2": 5, "path": 0 },
+      "timeScale": { "camera1": 3, "camera2": 3 },
       "overheadRotation": 0
     },
     {
@@ -96,6 +102,7 @@
         "trajectory": "traj_rrt_20260807_155747.csv"
       },
       "offsets": { "overhead": 5, "camera1": 6, "camera2": 6, "path": 0 },
+      "timeScale": { "camera1": 3, "camera2": 3 },
       "overheadRotation": 270
     },
     {
@@ -109,6 +116,7 @@
         "trajectory": "traj_rrt_20260807_160113.csv"
       },
       "offsets": { "overhead": 3, "camera1": 6, "camera2": 6, "path": 1 },
+      "timeScale": { "camera1": 3, "camera2": 3 },
       "overheadRotation": 270
     },
     {
@@ -122,6 +130,7 @@
         "trajectory": "traj_off_20260805_145554.csv"
       },
       "offsets": { "overhead": 16, "camera1": 5, "camera2": 5, "path": 0 },
+      "timeScale": { "camera1": 1, "camera2": 1 },
       "overheadRotation": 0
     },
     {
@@ -135,6 +144,7 @@
         "trajectory": "traj_off_20260807_154124.csv"
       },
       "offsets": { "overhead": 9, "camera1": 6, "camera2": 6, "path": 0 },
+      "timeScale": { "camera1": 1, "camera2": 1 },
       "overheadRotation": 0
     }
   ],
@@ -147,6 +157,7 @@
       "trajectory": "trajectory.csv"
     },
     "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
+    "timeScale": { "camera1": 1, "camera2": 1 },
     "overheadRotation": 0
   },
 
