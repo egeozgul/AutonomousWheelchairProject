@@ -73,7 +73,7 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_astar_20260807_161443.csv"
       },
-      "offsets": { "overhead": 1, "camera1": 6, "camera2": 6, "path": 0 },
+      "offsets": { "overhead": 1, "camera1": 3, "camera2": 3, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "overheadRotation": 270
     },
@@ -143,8 +143,8 @@
         "camera2": "cam2_detected.mp4",
         "trajectory": "traj_off_20260807_154124.csv"
       },
-      "offsets": { "overhead": 9, "camera1": 6, "camera2": 6, "path": 0 },
-      "timeScale": { "camera1": 1, "camera2": 1 },
+      "offsets": { "overhead": 9, "camera1": 5, "camera2": 5, "path": 0 },
+      "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "overheadRotation": 0
     }
   ],
