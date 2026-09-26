@@ -332,7 +332,8 @@
         },
         offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
         timeScale: { camera1: 1, camera2: 1 },
-        overheadRotation: 0
+        overheadRotation: 0,
+        environment: null
       }
     ],
     defaults: {
@@ -348,8 +349,12 @@
     },
     layout: { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2 },
     sync:   { toleranceSeconds: 0.12 },
+    environments: {},
     plot: {
       gridMeters: 1, padMeters: 0.5,
+      obstacleColor: '#6a5540', obstacleEdge: '#b08a5e',
+      bufferColor: '#4a4032', waypointColor: '#b9a4d8',
+      startColor: '#5fc98a', goalColor: '#e08484',
       chairColor: '#6b7cff', routeColor: '#39404d',
       gridColor: '#1e242c', axisColor: '#2b3440',
       humanColors: ['#e8a33d', '#57c7a3', '#e0738f', '#8f7ae0', '#c9d14a', '#4aa8d1']
@@ -363,6 +368,7 @@
 
   let CFG = structuredClone(DEFAULTS);
   let PROJECT = null;
+  let ENV = null;
   let rotation = 0;
 
   function merge(base, over) {
@@ -795,9 +801,103 @@
     return lo;
   }
 
-  function drawPlot() {
-    if (!traj) return;
+  /* The view has to cover the path and the room, so the obstacles don't fall
+     outside the frame on runs where the chair never went near them. */
+  function viewBounds() {
+    const pad = CFG.plot.padMeters;
+    let b = traj
+      ? { minX: traj.bounds.minX, maxX: traj.bounds.maxX,
+          minY: traj.bounds.minY, maxY: traj.bounds.maxY }
+      : { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+
+    const see = (x, y) => {
+      if (x - pad < b.minX) b.minX = x - pad;
+      if (x + pad > b.maxX) b.maxX = x + pad;
+      if (y - pad < b.minY) b.minY = y - pad;
+      if (y + pad > b.maxY) b.maxY = y + pad;
+    };
+
+    if (ENV) {
+      (ENV.obstacles || []).forEach(([x, y, rw, rh]) => { see(x, y); see(x + rw, y + rh); });
+      (ENV.waypoints || []).forEach(([x, y]) => see(x, y));
+      if (ENV.start) see(ENV.start[0], ENV.start[1]);
+      if (ENV.goal)  see(ENV.goal[0],  ENV.goal[1]);
+      if (ENV.bounds) {
+        b.minX = Math.min(b.minX, ENV.bounds.xmin);
+        b.maxX = Math.max(b.maxX, ENV.bounds.xmax);
+        b.minY = Math.min(b.minY, ENV.bounds.ymin);
+        b.maxY = Math.max(b.maxY, ENV.bounds.ymax);
+      }
+    }
+
+    if (!isFinite(b.minX)) b = { minX: -1, maxX: 1, minY: -1, maxY: 1 };
+    return b;
+  }
+
+  function drawEnvironment(ctx, X, Y, k) {
+    if (!ENV) return;
     const P = CFG.plot;
+
+    // safety-buffered footprint, dashed
+    const buf = Number(ENV.buffer) || 0;
+    if (buf > 0) {
+      ctx.strokeStyle = P.bufferColor;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 3]);
+      (ENV.obstacles || []).forEach(([x, y, rw, rh]) => {
+        ctx.strokeRect(X(x - buf), Y(y + rh + buf),
+                       (rw + 2 * buf) * k, (rh + 2 * buf) * k);
+      });
+      ctx.setLineDash([]);
+    }
+
+    // obstacles themselves
+    ctx.fillStyle = P.obstacleColor;
+    ctx.strokeStyle = P.obstacleEdge;
+    ctx.lineWidth = 1.2;
+    (ENV.obstacles || []).forEach(([x, y, rw, rh]) => {
+      // canvas y grows downward, so the top edge is y + rh in world space
+      ctx.fillRect(X(x), Y(y + rh), rw * k, rh * k);
+      ctx.strokeRect(X(x), Y(y + rh), rw * k, rh * k);
+    });
+
+    // waypoints
+    ctx.fillStyle = P.waypointColor;
+    (ENV.waypoints || []).forEach(([x, y], i) => {
+      const px = X(x), py = Y(y);
+      ctx.beginPath();
+      for (let n = 0; n < 10; n++) {                 // five-pointed star
+        const a = -Math.PI / 2 + n * Math.PI / 5;
+        const r = n % 2 ? 2.6 : 6;
+        n ? ctx.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r)
+          : ctx.moveTo(px + Math.cos(a) * r, py + Math.sin(a) * r);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.font = '9px system-ui, sans-serif';
+      ctx.fillText('w' + (i + 1), px + 7, py - 5);
+      ctx.fillStyle = P.waypointColor;
+    });
+
+    const marker = (pt, col, label) => {
+      if (!pt) return;
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(X(pt[0]), Y(pt[1]), 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.font = '9px system-ui, sans-serif';
+      ctx.fillText(label, X(pt[0]) + 7, Y(pt[1]) + 3);
+    };
+    marker(ENV.start, P.startColor, 'start');
+    marker(ENV.goal,  P.goalColor,  'goal');
+  }
+
+  function drawPlot() {
+    const P = CFG.plot;
+    if (!traj && !ENV) return;
     const dpr = window.devicePixelRatio || 1;
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
@@ -808,7 +908,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    const b = traj.bounds;
+    const b = viewBounds();
     const k = Math.min(w / (b.maxX - b.minX), h / (b.maxY - b.minY));
     const ox = (w - (b.maxX - b.minX) * k) / 2;
     const oy = (h - (b.maxY - b.minY) * k) / 2;
@@ -828,6 +928,9 @@
     ctx.moveTo(X(b.minX), Y(0)); ctx.lineTo(X(b.maxX), Y(0));
     ctx.stroke();
 
+    drawEnvironment(ctx, X, Y, k);
+
+    if (!traj) return;
     const i = sampleAt(master + (Number(offPath.value) || 0));
 
     ctx.strokeStyle = P.routeColor; ctx.lineWidth = 1.5;
@@ -893,6 +996,8 @@
     document.getElementById('rate2').value = scales.camera2;
     tracks.forEach(t => { if (t.scale) t.el.playbackRate = scaleOf(t); });
 
+    ENV = (CFG.environments || {})[proj.environment] || null;
+
     rotation = Number(
       proj.overheadRotation !== undefined
         ? proj.overheadRotation
@@ -925,6 +1030,8 @@
 
   const rotSel = document.getElementById('rotSel');
   rotSel.addEventListener('change', () => {
+    ENV = (CFG.environments || {})[proj.environment] || null;
+
     rotation = Number(rotSel.value) || 0;
     layoutOverhead();
   });
