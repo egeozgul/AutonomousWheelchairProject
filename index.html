@@ -76,13 +76,13 @@
 
   .plotwrap {
     position: relative; flex: 1 1 auto; min-height: 0;
-    background: rgba(12,14,18,0.86);
+    background: #ffffff;
     border-right: 1px solid rgba(255,255,255,0.35);
   }
   .plotwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .plotwrap .cap {
     position: absolute; top: 4px; left: 8px;
-    font-size: 0.66rem; color: var(--muted);
+    font-size: 0.66rem; color: #8a8a8a;
   }
 
   /* ---------- transport ---------- */
@@ -415,6 +415,21 @@
   }
 
   const offsetsFor = (proj) => merge(CFG.defaults.offsets, proj.offsets || {});
+
+  /* Map palette, fixed in the page rather than the config. */
+  const MAP = {
+    grid:         '#d8d8d8',   // 1 m grid, light grey
+    axis:         '#bdbdbd',
+    obstacleEdge: '#000000',   // hollow black rectangles
+    bufferEdge:   '#b8960b',   // slightly dark yellow outer outline
+    waypoint:     '#4b1d8f',   // dark purple stars
+    start:        '#d92b2b',   // red
+    goal:         '#1a9e4b',   // green
+    route:        '#ffb3c6',   // light pink connecting lines
+    label:        '#555555',
+    markerEdge:   'rgba(0,0,0,0.55)'
+  };
+  const GRID_M = 1;
 
   /* ---------------- elements ---------------- */
   const stage   = document.getElementById('stage');
@@ -969,8 +984,8 @@
     // safety-buffered footprint, dashed
     const buf = Number(ENV.buffer) || 0;
     if (buf > 0) {
-      ctx.strokeStyle = P.bufferColor;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = MAP.bufferEdge;
+      ctx.lineWidth = 1.4;
       ctx.setLineDash([4, 3]);
       (ENV.obstacles || []).forEach(([x, y, rw, rh]) => {
         ctx.strokeRect(X(x - buf), Y(y + rh + buf),
@@ -980,12 +995,10 @@
     }
 
     // obstacles themselves
-    ctx.fillStyle = P.obstacleColor;
-    ctx.strokeStyle = P.obstacleEdge;
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = MAP.obstacleEdge;
+    ctx.lineWidth = 1.6;
     (ENV.obstacles || []).forEach(([x, y, rw, rh]) => {
       // canvas y grows downward, so the top edge is y + rh in world space
-      ctx.fillRect(X(x), Y(y + rh), rw * k, rh * k);
       ctx.strokeRect(X(x), Y(y + rh), rw * k, rh * k);
     });
 
@@ -1003,8 +1016,8 @@
 
     if (route.length > 1) {
       const path = routedPath(ENV, route);
-      ctx.strokeStyle = P.routeColor;
-      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = MAP.route;
+      ctx.lineWidth = 2.2;
       ctx.lineJoin = 'round';
       ctx.setLineDash([5, 4]);
       ctx.beginPath();
@@ -1014,7 +1027,7 @@
     }
 
     // waypoints
-    ctx.fillStyle = P.waypointColor;
+    ctx.fillStyle = MAP.waypoint;
     wps.forEach(([x, y]) => {
       const px = X(x), py = Y(y);
       ctx.beginPath();
@@ -1034,12 +1047,12 @@
       ctx.beginPath();
       ctx.arc(X(pt[0]), Y(pt[1]), 5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.fillStyle = MAP.label;
       ctx.font = '9px system-ui, sans-serif';
       ctx.fillText(label, X(pt[0]) + 7, Y(pt[1]) + 3);
     };
-    marker(ENV.start, P.startColor, 'start');
-    marker(ENV.goal,  P.goalColor,  'goal');
+    marker(ENV.start, MAP.start, 'start');
+    marker(ENV.goal,  MAP.goal,  'goal');
   }
 
   /* Markers are ellipses whose long axis lies along the direction of travel.
@@ -1097,14 +1110,14 @@
     const X = (x) => ox + (x - b.minX) * k;
     const Y = (y) => h - oy - (y - b.minY) * k;
 
-    const g = P.gridMeters;
-    ctx.strokeStyle = P.gridColor; ctx.lineWidth = 1;
+    const g = GRID_M;
+    ctx.strokeStyle = MAP.grid; ctx.lineWidth = 1;
     ctx.beginPath();
     for (let x = Math.ceil(b.minX / g) * g; x <= b.maxX; x += g) { ctx.moveTo(X(x), Y(b.minY)); ctx.lineTo(X(x), Y(b.maxY)); }
     for (let y = Math.ceil(b.minY / g) * g; y <= b.maxY; y += g) { ctx.moveTo(X(b.minX), Y(y)); ctx.lineTo(X(b.maxX), Y(y)); }
     ctx.stroke();
 
-    ctx.strokeStyle = P.axisColor;
+    ctx.strokeStyle = MAP.axis;
     ctx.beginPath();
     ctx.moveTo(X(0), Y(b.minY)); ctx.lineTo(X(0), Y(b.maxY));
     ctx.moveTo(X(b.minX), Y(0)); ctx.lineTo(X(b.maxX), Y(0));
@@ -1128,13 +1141,13 @@
       const p = hm.pts[i];
       const a = headingAt(hm.pts, i, headingMemo, hm.name);
       drawMarker(ctx, X(p.x), Y(p.y), k, hs[0], hs[1], a,
-                 P.humanColors[n % P.humanColors.length], 'rgba(0,0,0,0.45)');
+                 P.humanColors[n % P.humanColors.length], MAP.markerEdge);
     });
 
     const c = traj.chair[i];
     const cs = P.chairSize || [0.95, 0.65];
     drawMarker(ctx, X(c.x), Y(c.y), k, cs[0], cs[1], c.yaw,
-               P.chairColor, '#cdd3ff');
+               P.chairColor, MAP.markerEdge);
   }
 
   /* ---------------- projects ---------------- */
