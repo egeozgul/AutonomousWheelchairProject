@@ -35,21 +35,8 @@
       "overheadRotation": 0
     },
     {
-      "id": "mocap-rrt-exp2-1",
-      "name": "Mocap · RRT · experiment 2, run 1",
-      "folder": "mocap-rrt-exp2-1",
-      "files": {
-        "overhead": "overhead_web.mp4",
-        "camera1": "cam1_detected.mp4",
-        "camera2": "cam2_detected.mp4",
-        "trajectory": "traj_rrt_20260806_142202.csv"
-      },
-      "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
-      "overheadRotation": 0
-    },
-    {
       "id": "mocap-rrt-exp2-2",
-      "name": "Mocap · RRT · experiment 2, run 2",
+      "name": "Mocap · RRT · experiment 2",
       "folder": "mocap-rrt-exp2-2",
       "files": {
         "overhead": "overhead_web.mp4",
@@ -129,7 +116,7 @@
     },
     {
       "id": "global-trial3",
-      "name": "Global · trial 3",
+      "name": "Global",
       "folder": "global-trial3",
       "files": {
         "overhead": "overhead_web.mp4",
