@@ -370,10 +370,11 @@
     environments: {},
     plot: {
       gridMeters: 1, padMeters: 0.5,
+      chairSize: [0.605, 0.385], humanSize: [0.55, 0.35],
       obstacleColor: '#6a5540', obstacleEdge: '#b08a5e',
       bufferColor: '#4a4032', waypointColor: '#b9a4d8',
       startColor: '#5fc98a', goalColor: '#e08484',
-      chairColor: '#6b7cff', routeColor: '#39404d',
+      chairColor: '#6b7cff', routeColor: '#9aa6bb',
       gridColor: '#1e242c', axisColor: '#2b3440',
       humanColors: ['#e8a33d', '#57c7a3', '#e0738f', '#8f7ae0', '#c9d14a', '#4aa8d1']
     }
@@ -1003,7 +1004,7 @@
     if (route.length > 1) {
       const path = routedPath(ENV, route);
       ctx.strokeStyle = P.routeColor;
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.8;
       ctx.lineJoin = 'round';
       ctx.setLineDash([5, 4]);
       ctx.beginPath();
@@ -1019,7 +1020,7 @@
       ctx.beginPath();
       for (let n = 0; n < 10; n++) {                 // five-pointed star
         const a = -Math.PI / 2 + n * Math.PI / 5;
-        const r = n % 2 ? 2.6 : 6;
+        const r = n % 2 ? 1.95 : 4.5;
         n ? ctx.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r)
           : ctx.moveTo(px + Math.cos(a) * r, py + Math.sin(a) * r);
       }
@@ -1040,6 +1041,41 @@
     marker(ENV.start, P.startColor, 'start');
     marker(ENV.goal,  P.goalColor,  'goal');
   }
+
+  /* Markers are ellipses whose long axis lies along the direction of travel.
+     Sizes are in metres, so they scale with the plot. World angles run
+     counter-clockwise with y up; canvas rotation is the other way round. */
+  function drawMarker(ctx, px, py, k, lenM, widM, angle, fill, stroke) {
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(-angle);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, (lenM / 2) * k, (widM / 2) * k, 0, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (stroke) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /* Heading from recent displacement; falls back to the last usable one so a
+     stationary person doesn't spin. */
+  function headingAt(pts, i, memo, key) {
+    for (let back = 1; back <= 20 && i - back >= 0; back++) {
+      const a = pts[i - back], b = pts[i];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      if (Math.hypot(dx, dy) > 0.02) {
+        memo[key] = Math.atan2(dy, dx);
+        return memo[key];
+      }
+    }
+    return memo[key] || 0;
+  }
+
+  const headingMemo = {};
 
   function drawPlot() {
     const P = CFG.plot;
@@ -1087,23 +1123,18 @@
     }
     ctx.stroke();
 
+    const hs = P.humanSize || [0.55, 0.35];
     traj.humans.forEach((hm, n) => {
       const p = hm.pts[i];
-      ctx.fillStyle = P.humanColors[n % P.humanColors.length];
-      ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 4.5, 0, Math.PI * 2); ctx.fill();
+      const a = headingAt(hm.pts, i, headingMemo, hm.name);
+      drawMarker(ctx, X(p.x), Y(p.y), k, hs[0], hs[1], a,
+                 P.humanColors[n % P.humanColors.length], 'rgba(0,0,0,0.45)');
     });
 
     const c = traj.chair[i];
-    const cx = X(c.x), cy = Y(c.y), r = 10;
-    ctx.fillStyle = P.chairColor;
-    ctx.beginPath();
-    for (let n = 0; n < 3; n++) {
-      const a = c.yaw + (n === 0 ? 0 : (n === 1 ? 2.5 : -2.5));
-      const rad = n === 0 ? r : r * 0.75;
-      ctx.lineTo(cx + Math.cos(a) * rad, cy - Math.sin(a) * rad);
-    }
-    ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#cdd3ff'; ctx.lineWidth = 1; ctx.stroke();
+    const cs = P.chairSize || [0.95, 0.65];
+    drawMarker(ctx, X(c.x), Y(c.y), k, cs[0], cs[1], c.yaw,
+               P.chairColor, '#cdd3ff');
   }
 
   /* ---------------- projects ---------------- */
