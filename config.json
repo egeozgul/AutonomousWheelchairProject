@@ -222,7 +222,8 @@
     "keepPerCamera": 1.0,
     "trimTop": 0,
     "cameraHeightPct": 50,
-    "trailSeconds": 2
+    "trailSeconds": 2,
+    "cameraAspect": 0.475
   },
 
   "sync": {
