@@ -80,7 +80,7 @@
       "offsets": { "overhead": 1, "camera1": 3, "camera2": 3, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 270
+      "overheadRotation": 90
     },
     {
       "id": "lidar-astar-exp2",
@@ -95,7 +95,7 @@
       "offsets": { "overhead": 14, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 0
+      "overheadRotation": 180
     },
     {
       "id": "lidar-rrt-exp1-1",
@@ -110,7 +110,7 @@
       "offsets": { "overhead": 5, "camera1": 6, "camera2": 6, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 270
+      "overheadRotation": 90
     },
     {
       "id": "lidar-rrt-exp1-2",
@@ -125,7 +125,7 @@
       "offsets": { "overhead": 3, "camera1": 6, "camera2": 6, "path": 1 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 270
+      "overheadRotation": 90
     },
     {
       "id": "global-path",
@@ -155,7 +155,7 @@
       "offsets": { "overhead": 9, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
-      "overheadRotation": 0
+      "overheadRotation": 180
     }
   ],
 
