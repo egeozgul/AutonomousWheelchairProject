@@ -108,6 +108,18 @@
   input[type=range] { flex: 1; min-width: 140px; accent-color: var(--accent); }
   .time { font-variant-numeric: tabular-nums; font-size: 0.82rem; color: var(--muted); min-width: 11ch; }
 
+  .runbar {
+    margin-top: 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel);
+    padding: 0.7rem 1rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    font-size: 0.85rem;
+  }
+  .runbar > label { color: var(--muted); }
+  .runbar > select { flex: 1; min-width: 0; }
+
   /* ---------- settings ---------- */
   .settings {
     margin-top: 0.85rem;
@@ -211,14 +223,19 @@
       <span class="time" id="buffer" style="min-width:0;color:var(--bad)"></span>
     </div>
 
+    <div class="runbar">
+      <label for="projectSel">Run</label>
+      <select id="projectSel"></select>
+      <span class="status wait" id="summaryStatus">checking…</span>
+    </div>
+
+    <div hidden>
     <details class="settings" id="settings">
-      <summary>Settings <span id="summaryStatus" class="status wait">checking…</span></summary>
+      <summary>Settings</summary>
 
       <div class="group">
         <h4>Project</h4>
         <div class="frow">
-          <label for="projectSel">Run</label>
-          <select id="projectSel"></select>
           <span class="status wait" id="sproj"></span>
         </div>
         <div class="frow">
@@ -299,6 +316,7 @@
         </div>
       </div>
     </details>
+    </div>
   </section>
 
   <footer>
@@ -460,7 +478,6 @@
     const done = expected > 0 && loaded >= expected;
     el.className = done ? 'status ok' : (loaded ? 'status bad' : 'status wait');
     el.textContent = done ? 'all ' + expected + ' loaded' : loaded + ' of ' + expected + ' loaded';
-    if (!done) document.getElementById('settings').open = true;
   }
 
   /* ---------------- video sources with fallback ---------------- */
