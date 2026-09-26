@@ -283,6 +283,16 @@
           <span class="note">negative if it started recording earlier</span>
         </div>
         <div class="orow">
+          <label for="rate1">Camera 1 rate</label>
+          <input type="number" id="rate1" value="1" step="0.001" min="0.1" max="10">
+          <span class="note">multiplies its clock; 1 = same speed as the timeline</span>
+        </div>
+        <div class="orow">
+          <label for="rate2">Camera 2 rate</label>
+          <input type="number" id="rate2" value="1" step="0.001" min="0.1" max="10">
+          <span class="note">raise it if the camera clock runs slow</span>
+        </div>
+        <div class="orow">
           <label for="offPath">Path</label>
           <input type="number" id="offPath" value="0" step="0.1">
           <span class="note">shifts the trajectory against the video clock</span>
@@ -321,6 +331,7 @@
           trajectory: 'traj_astar_20260806_140501.csv'
         },
         offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
+        timeScale: { camera1: 1, camera2: 1 },
         overheadRotation: 0
       }
     ],
@@ -332,6 +343,7 @@
         trajectory: 'trajectory.csv'
       },
       offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
+      timeScale: { camera1: 1, camera2: 1 },
       overheadRotation: 0
     },
     layout: { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2 },
@@ -411,9 +423,9 @@
   });
 
   const tracks = [
-    { key: 'overhead', el: main, status: document.getElementById('s0'), picker: document.getElementById('f0'), offset: null },
-    { key: 'camera1',  el: cam1, status: document.getElementById('s1'), picker: document.getElementById('f1'), offset: document.getElementById('off1') },
-    { key: 'camera2',  el: cam2, status: document.getElementById('s2'), picker: document.getElementById('f2'), offset: document.getElementById('off2') }
+    { key: 'overhead', el: main, status: document.getElementById('s0'), picker: document.getElementById('f0'), offset: null, scale: null },
+    { key: 'camera1',  el: cam1, status: document.getElementById('s1'), picker: document.getElementById('f1'), offset: document.getElementById('off1'), scale: document.getElementById('rate1') },
+    { key: 'camera2',  el: cam2, status: document.getElementById('s2'), picker: document.getElementById('f2'), offset: document.getElementById('off2'), scale: document.getElementById('rate2') }
   ];
   const followers = tracks.slice(1);
 
@@ -564,10 +576,23 @@
 
   const offsetOf = (t) => Number((t.offset || offMain).value) || 0;
 
+  /* A source's own clock runs at `scale` times the shared timeline, so it sits
+     at  master * scale + offset.  Scale stays 1 unless a camera recorded with a
+     drifting clock. */
+  function scaleOf(t) {
+    if (!t.scale) return 1;
+    const v = Number(t.scale.value);
+    return (isFinite(v) && v > 0) ? v : 1;
+  }
+
+  const trackTime = (t) => master * scaleOf(t) + offsetOf(t);
+
   function totalDuration() {
     let d = 0;
     tracks.forEach(t => {
-      if (isFinite(t.el.duration)) d = Math.max(d, t.el.duration - offsetOf(t));
+      if (!isFinite(t.el.duration)) return;
+      // how far the timeline can run before this source reaches its end
+      d = Math.max(d, (t.el.duration - offsetOf(t)) / scaleOf(t));
     });
     if (traj) d = Math.max(d, traj.duration - (Number(offPath.value) || 0));
     return d;
@@ -577,7 +602,7 @@
     const tol = CFG.sync.toleranceSeconds;
     tracks.forEach(t => {
       if (t.el.readyState < 1 || !isFinite(t.el.duration)) return;
-      const want = Math.min(Math.max(0, master + offsetOf(t)), t.el.duration);
+      const want = Math.min(Math.max(0, trackTime(t)), t.el.duration);
       if (force || Math.abs(t.el.currentTime - want) > tol) t.el.currentTime = want;
     });
   }
@@ -596,6 +621,7 @@
     playBtn.textContent = 'Pause all';
     tracks.forEach(t => {
       if (t.el.readyState >= 1) {
+        t.el.playbackRate = scaleOf(t);
         t.el.play().catch(err => setStatus(t.status, 'bad', 'blocked: ' + err.name));
       }
     });
@@ -622,6 +648,10 @@
 
   tracks.forEach(t => {
     if (t.offset) t.offset.addEventListener('input', () => setMaster(master, true));
+    if (t.scale) t.scale.addEventListener('input', () => {
+      t.el.playbackRate = scaleOf(t);
+      setMaster(master, true);
+    });
   });
   offMain.addEventListener('input', () => setMaster(master, true));
   offPath.addEventListener('input', drawPlot);
@@ -857,6 +887,11 @@
     document.getElementById('off1').value = off.camera1;
     document.getElementById('off2').value = off.camera2;
     offPath.value = off.path;
+
+    const scales = merge(CFG.defaults.timeScale, proj.timeScale || {});
+    document.getElementById('rate1').value = scales.camera1;
+    document.getElementById('rate2').value = scales.camera2;
+    tracks.forEach(t => { if (t.scale) t.el.playbackRate = scaleOf(t); });
 
     rotation = Number(
       proj.overheadRotation !== undefined
