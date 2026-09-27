@@ -140,6 +140,7 @@
       "offsets": { "overhead": 16, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1, "camera2": 1 },
       "environment": "DC",
+      "showPedestrians": false,
       "overheadRotation": 0
     },
     {
@@ -155,6 +156,7 @@
       "offsets": { "overhead": 9, "camera1": 5, "camera2": 5, "path": 0 },
       "timeScale": { "camera1": 1.5, "camera2": 1.5 },
       "environment": "ODC",
+      "showPedestrians": false,
       "overheadRotation": 0
     }
   ],
@@ -215,6 +217,7 @@
     "offsets": { "overhead": 0, "camera1": 0, "camera2": 0, "path": 0 },
     "timeScale": { "camera1": 1, "camera2": 1 },
     "environment": null,
+    "showPedestrians": true,
     "overheadRotation": 0
   },
 
