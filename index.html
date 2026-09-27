@@ -373,7 +373,8 @@
         offsets: { overhead: 0, camera1: 0, camera2: 0, path: 0 },
         timeScale: { camera1: 1, camera2: 1 },
         overheadRotation: 0,
-        environment: null
+        environment: null,
+        showPedestrians: true
       }
     ],
     defaults: {
@@ -817,9 +818,23 @@
         const x = parseFloat(f[idx[h.name + '_x']]);
         const y = parseFloat(f[idx[h.name + '_y']]);
         h.pts.push({ x, y });
-        see(x, y);
+        if (isFinite(x) && isFinite(y)) see(x, y);
       });
     }
+
+    /* A target that never moves is a parked or lost marker rather than a
+       person, so mark it and leave it off the map. */
+    const STILL_M = 0.10;
+    humans.forEach(hm => {
+      let lo = [Infinity, Infinity], hi = [-Infinity, -Infinity];
+      hm.pts.forEach(q => {
+        if (!isFinite(q.x) || !isFinite(q.y)) return;
+        lo[0] = Math.min(lo[0], q.x); hi[0] = Math.max(hi[0], q.x);
+        lo[1] = Math.min(lo[1], q.y); hi[1] = Math.max(hi[1], q.y);
+      });
+      hm.span = Math.max(hi[0] - lo[0], hi[1] - lo[1]);
+      hm.active = isFinite(hm.span) && hm.span > STILL_M;
+    });
 
     const pad = CFG.plot.padMeters;
     const dt = t.length > 1 ? (t[t.length - 1] - t[0]) / (t.length - 1) : 0.05;
@@ -1174,9 +1189,13 @@
     }
     ctx.stroke();
 
+    // runs with no participants log tracker slots that aren't people
+    const showPeople = !(PROJECT && PROJECT.showPedestrians === false);
     const hs = P.humanSize || [0.55, 0.35];
-    traj.humans.forEach((hm, n) => {
+    if (showPeople) traj.humans.forEach((hm, n) => {
+      if (hm.active === false) return;
       const p = hm.pts[i];
+      if (!p || !isFinite(p.x) || !isFinite(p.y)) return;
       const a = headingAt(hm.pts, i, headingMemo, hm.name);
       drawMarker(ctx, X(p.x), Y(p.y), k, hs[0], hs[1], a,
                  P.humanColors[n % P.humanColors.length], MAP.markerEdge, 0.5);
