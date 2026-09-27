@@ -365,7 +365,7 @@
       timeScale: { camera1: 1, camera2: 1 },
       overheadRotation: 0
     },
-    layout: { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2 },
+    layout: { keepPerCamera: 1, trimTop: 0, cameraHeightPct: 50, trailSeconds: 2, cameraAspect: 0.475 },
     sync:   { toleranceSeconds: 0.12 },
     environments: {},
     plot: {
@@ -551,7 +551,11 @@
     if (!h) return;
 
     const vh = h / (1 - L.trimTop);
-    const ar = (v) => (v.videoWidth && v.videoHeight) ? v.videoWidth / v.videoHeight : 3 / 4;
+    // A fixed aspect keeps every run's camera panel the same width; the LiDAR
+    // rig recorded narrower frames, so those get stretched slightly to match.
+    const forced = Number(L.cameraAspect) || 0;
+    const ar = (v) => forced ||
+      ((v.videoWidth && v.videoHeight) ? v.videoWidth / v.videoHeight : 3 / 4);
     const w1 = vh * ar(cam1);
     const w2 = vh * ar(cam2);
     const colW = (w1 + w2) * L.keepPerCamera;
@@ -564,6 +568,8 @@
 
     cam1.style.height = vh + 'px';
     cam2.style.height = vh + 'px';
+    cam1.style.width = w1 + 'px';
+    cam2.style.width = w2 + 'px';
     cam1.style.top = (-vh * L.trimTop) + 'px';
     cam2.style.top = (-vh * L.trimTop) + 'px';
 
