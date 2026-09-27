@@ -60,6 +60,26 @@
     display: block; background: #000;
   }
 
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .loading[hidden] { display: none; }
+  .loading .ring {
+    width: 44px; height: 44px;
+    border: 3px solid rgba(255,255,255,0.18);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    box-shadow: 0 0 14px rgba(0,0,0,0.5);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   .sidecol {
     position: absolute; top: 0; left: 0; height: 100%;
     display: flex; flex-direction: column;
@@ -199,6 +219,8 @@
       <div class="mainwrap" id="mainwrap">
         <video class="main" id="v0" playsinline preload="metadata" muted></video>
       </div>
+
+      <div class="loading" id="loading" hidden><div class="ring"></div></div>
 
       <div class="sidecol" id="sidecol">
         <div class="pip" id="pip">
@@ -446,6 +468,7 @@
   const scrub   = document.getElementById('scrub');
   const timeOut = document.getElementById('time');
   const bufOut  = document.getElementById('buffer');
+  const loadEl  = document.getElementById('loading');
   const offPath = document.getElementById('offPath');
   const offMain = document.getElementById('off0');
   const mainwrap = document.getElementById('mainwrap');
@@ -735,7 +758,7 @@
           holding = true;
           tracks.forEach(t => t.el.pause());
         }
-        bufOut.textContent = 'buffering ' + stalled.map(t => t.key).join(', ') + '…';
+        bufOut.textContent = '';
         clockM0 = master;                       // freeze the timeline here
         clockT0 = performance.now();
       } else if (holding) {
@@ -753,6 +776,11 @@
         seekAll(false);
       }
     }
+
+    // spinning while a source is stalled, or still fetching its first frames
+    const waiting = holding || tracks.some(t =>
+      t.queue && t.queue.length && t.el.readyState < 1 && !t.el.error);
+    loadEl.hidden = !waiting;
 
     const D = totalDuration();
     if (!scrubbing && D) scrub.value = Math.max(0, Math.min(1000, (master / D) * 1000));
